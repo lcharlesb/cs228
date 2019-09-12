@@ -8,6 +8,8 @@ import constants
 import Deliverable
 import numpy as np
 import pickle
+import os
+import shutil
 
 class DELIVERABLE:
 
@@ -24,6 +26,7 @@ class DELIVERABLE:
         self.currentNumberOfHands = 0
         self.gestureData = np.zeros((5,4,6),dtype='f')
         self.numData = 0
+        self.Update_Gesture_Data()
         pass
 
     def Run_Forever(self):
@@ -107,3 +110,7 @@ class DELIVERABLE:
         file.close()
         self.numData = self.numData + 1
         pass
+
+    def Update_Gesture_Data(self):
+        shutil.rmtree("./userData/")
+        os.mkdir("./userData/")
