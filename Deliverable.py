@@ -7,6 +7,7 @@ import random
 import constants
 import Deliverable
 import numpy as np
+import pickle
 
 class DELIVERABLE:
 
@@ -22,6 +23,7 @@ class DELIVERABLE:
         self.previousNumberOfHands = 0
         self.currentNumberOfHands = 0
         self.gestureData = np.zeros((5,4,6),dtype='f')
+        self.numData = 0
         pass
 
     def Run_Forever(self):
@@ -83,7 +85,7 @@ class DELIVERABLE:
         for finger in fingers:
             self.Handle_Finger(finger)
         if self.Recording_Is_Ending():
-            print(self.gestureData)
+            self.Save_Gesture()
         pass
 
     def ScaleCoordinates(self, value, rangeOneLow, rangeOneHigh, rangeTwoLow, rangeTwoHigh):
@@ -98,3 +100,10 @@ class DELIVERABLE:
         if(self.currentNumberOfHands == 1 and self.previousNumberOfHands == 2):
             return True
         return False
+
+    def Save_Gesture(self):
+        file = open("./userData/gesture" + str(self.numData) + ".p", "wb")
+        pickle.dump(self.gestureData, file)
+        file.close()
+        self.numData = self.numData + 1
+        pass
