@@ -7,5 +7,5 @@ import random
 import constants
 import Recorder
 
-obj = Recorder.DELIVERABLE()
+obj = Recorder.RECORDER()
 obj.Run_Forever()

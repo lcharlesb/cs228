@@ -11,7 +11,10 @@ import pickle
 import os
 import shutil
 
-class DELIVERABLE:
+class RECORDER:
+
+    numberOfGestures = 1000;
+    gestureIndex = 0;
 
     def __init__(self):
         self.controller = Leap.Controller()
@@ -24,8 +27,7 @@ class DELIVERABLE:
         self.yMax = 100.0
         self.previousNumberOfHands = 0
         self.currentNumberOfHands = 0
-        self.gestureData = np.zeros((5,4,6),dtype='f')
-        self.numData = 0
+        self.gestureData = np.zeros((5,4,6,self.numberOfGestures),dtype='f')
         self.Update_Gesture_Data()
         pass
 
@@ -69,13 +71,13 @@ class DELIVERABLE:
         elif(self.currentNumberOfHands == 2):
             color = (255,0,0)
         self.pygameWindow.Draw_Line(color, baseX, baseY, tipX, tipY, 3 - bone.type)
-        if self.Recording_Is_Ending():
-            self.gestureData[finger, bone.type, 0] = base[0]
-            self.gestureData[finger, bone.type, 1] = base[1]
-            self.gestureData[finger, bone.type, 2] = base[2]
-            self.gestureData[finger, bone.type, 3] = tip[0]
-            self.gestureData[finger, bone.type, 4] = tip[1]
-            self.gestureData[finger, bone.type, 5] = tip[2]
+        if self.currentNumberOfHands == 2:
+            self.gestureData[finger, bone.type, 0, self.gestureIndex] = base[0]
+            self.gestureData[finger, bone.type, 1, self.gestureIndex] = base[1]
+            self.gestureData[finger, bone.type, 2, self.gestureIndex] = base[2]
+            self.gestureData[finger, bone.type, 3, self.gestureIndex] = tip[0]
+            self.gestureData[finger, bone.type, 4, self.gestureIndex] = tip[1]
+            self.gestureData[finger, bone.type, 5, self.gestureIndex] = tip[2]
 
     def Handle_Finger(self, finger):
         for b in range(0,4):
@@ -87,8 +89,13 @@ class DELIVERABLE:
         fingers = hand.fingers
         for finger in fingers:
             self.Handle_Finger(finger)
-        if self.Recording_Is_Ending():
-            self.Save_Gesture()
+        if self.currentNumberOfHands == 2:
+            print('gesture ' + str(self.gestureIndex) + ' stored.')
+            self.gestureIndex = self.gestureIndex + 1
+            if self.gestureIndex == self.numberOfGestures:
+                # print(self.gestureData[:,:,:,99])
+                self.Save_Gesture()
+                exit(0)
         pass
 
     def ScaleCoordinates(self, value, rangeOneLow, rangeOneHigh, rangeTwoLow, rangeTwoHigh):
@@ -105,10 +112,9 @@ class DELIVERABLE:
         return False
 
     def Save_Gesture(self):
-        file = open("./userData/gesture" + str(self.numData) + ".p", "wb")
+        file = open("./userData/gesture.p", "wb")
         pickle.dump(self.gestureData, file)
         file.close()
-        self.numData = self.numData + 1
         pass
 
     def Update_Gesture_Data(self):
