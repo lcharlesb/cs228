@@ -1,4 +1,6 @@
 from __future__ import division
+# import sys
+# sys.path.insert(0, '../..')
 import numpy as np
 import pickle
 import knn
@@ -78,5 +80,4 @@ for row in range(0, 2000):
     if(actualClass == prediction):
         correctPredictions = correctPredictions + 1
 
-print(correctPredictions)
-print((correctPredictions/2000)*100)
+pickle.dump(knn, open('userData/classifier.p','wb'))
