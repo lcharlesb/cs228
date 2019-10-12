@@ -42,3 +42,48 @@ class PYGAME_WINDOW:
     def Draw_Instruction_Success(self):
         image = pygame.image.load(r'./images/success.jpg')
         self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+    def Draw1(self):
+        image = pygame.image.load(r'./images/1.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num1.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def Draw2(self):
+        image = pygame.image.load(r'./images/2.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num2.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def Draw3(self):
+        image = pygame.image.load(r'./images/3.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num3.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def Draw4(self):
+        image = pygame.image.load(r'./images/4.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num4.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def Draw5(self):
+        image = pygame.image.load(r'./images/5.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num5.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def Draw6(self):
+        image = pygame.image.load(r'./images/6.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num6.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def Draw7(self):
+        image = pygame.image.load(r'./images/7.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num7.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def Draw8(self):
+        image = pygame.image.load(r'./images/8.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num8.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def Draw9(self):
+        image = pygame.image.load(r'./images/9.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+        image1 = pygame.image.load(r'./images/num9.jpg')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))

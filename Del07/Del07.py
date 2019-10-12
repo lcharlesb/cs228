@@ -8,9 +8,12 @@ import random
 import constants
 import pickle
 import numpy as np
+from random import seed
+from random import randint
+import time
 
-# clf = pickle.load(open('userData/classifier.p','rb'))
-# testData = np.zeros((1,30),dtype='f')
+clf = pickle.load(open('userData/classifier.p','rb'))
+testData = np.zeros((1,30),dtype='f')
 
 pygameWindow = PYGAME_WINDOW()
 
@@ -23,7 +26,11 @@ yMax = 100.0
 programState = 0
 handPos = 0
 countForHandPos = 0
-# k = 0
+countForNumCorrect = 0
+currentNumCorrect = 1
+numToSign = 0
+k = 0
+countForProgramState = 0
 
 def Handle_Vector_From_Leap(v):
     global xMin, xMax, yMin, yMax
@@ -52,11 +59,11 @@ def Handle_Finger(finger):
     global k
     for b in range(0,4):
         xTip, yTip, zTip = Handle_Bone(finger.bone(b))
-        # if((b == 0) or (b == 3)):
-        #     testData[0,k] = xTip
-        #     testData[0,k+1] = yTip
-        #     testData[0,k+2] = zTip
-        #     k = k + 3
+        if((b == 0) or (b == 3)):
+            testData[0,k] = xTip
+            testData[0,k+1] = yTip
+            testData[0,k+2] = zTip
+            k = k + 3
 
 def Handle_Frame(frame):
     hand = frame.hands[0]
@@ -163,8 +170,46 @@ def HandleState1(frame):
     if not HandOverDevice(frame):
         programState = 0
 
-def HandleState2(fram):
+def HandleState2(frame, num):
+    if(num == 8):
+        num = 5
+    global testData, clf, countForNumCorrect, currentNumCorrect, programState
+    if(num == 1):
+        pygameWindow.Draw1()
+    elif(num == 2):
+        pygameWindow.Draw2()
+    elif(num == 3):
+        pygameWindow.Draw3()
+    elif(num == 4):
+        pygameWindow.Draw4()
+    elif(num == 5):
+        pygameWindow.Draw5()
+    elif(num == 6):
+        pygameWindow.Draw6()
+    elif(num == 7):
+        pygameWindow.Draw7()
+    elif(num == 8):
+        pygameWindow.Draw8()
+    elif(num == 9):
+        pygameWindow.Draw9()
     Handle_Frame(frame)
+    testData = CenterData(testData)
+    predictedClass = clf.Predict(testData)
+    print(predictedClass)
+    if(predictedClass == num):
+        countForNumCorrect += 1
+    else:
+        countForNumCorrect = 0
+    if(countForNumCorrect >= 10):
+        currentNumCorrect = 1
+        programState = 3
+
+def HandleState3(frame):
+    global programState, countForProgramState
+    pygameWindow.Draw_Instruction_Success()
+    if(countForProgramState > 50):
+        programState = 2
+    countForProgramState += 1
 
 def HandOverDevice(frame):
     if(len(frame.hands) > 0):
@@ -176,19 +221,24 @@ controller = Leap.Controller()
 pygameX = 0
 pygameY = 0
 
+seed(1)
+
 while True:
     pygameWindow.Prepare()
     frame = controller.frame()
+    k = 0
+    if(len(frame.hands) < 1):
+        programState = 0
     if programState == 0:
         HandleState0(frame)
     elif programState == 1:
         HandleState1(frame)
     elif programState == 2:
-        HandleState2(frame)
-    # if (len(frame.hands) > 0):
-    #     k = 0
-
-        # testData = CenterData(testData)
-        # predictedClass = clf.Predict(testData)
-        # print(predictedClass)
+        if(currentNumCorrect == 1):
+            numToSign = randint(1,9)
+            currentNumCorrect = 0
+            countForNumCorrect = 0
+        HandleState2(frame,numToSign)
+    elif programState == 3:
+        HandleState3(frame)
     pygameWindow.Reveal()
