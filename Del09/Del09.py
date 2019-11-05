@@ -30,7 +30,13 @@ countForNumCorrect = 0
 currentNumCorrect = 1
 numToSign = 0
 k = 0
-countForProgramState = 0
+numCounter = 0
+numSuccesses = 0
+numbersToDisplay = 3
+successCount = 0
+failureCount = 0
+timeAllowedPerNumber = 40
+reducedTimeStage = 0
 
 def Handle_Vector_From_Leap(v):
     global xMin, xMax, yMin, yMax
@@ -171,25 +177,43 @@ def HandleState1(frame):
         programState = 0
 
 def HandleState2(frame, num):
-    global testData, clf, countForNumCorrect, currentNumCorrect, programState
+    global testData, clf, countForNumCorrect, currentNumCorrect, programState, numbersToDisplay
     if(num == 1):
         pygameWindow.Draw1()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw1Num()
     elif(num == 2):
         pygameWindow.Draw2()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw2Num()
     elif(num == 3):
         pygameWindow.Draw3()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw3Num()
     elif(num == 4):
         pygameWindow.Draw4()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw4Num()
     elif(num == 5):
         pygameWindow.Draw5()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw5Num()
     elif(num == 6):
         pygameWindow.Draw6()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw6Num()
     elif(num == 7):
         pygameWindow.Draw7()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw7Num()
     elif(num == 8):
         pygameWindow.Draw8()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw8Num()
     elif(num == 9):
         pygameWindow.Draw9()
+        if(numbersToDisplay != 9):
+            pygameWindow.Draw9Num()
     Handle_Frame(frame)
     testData = CenterData(testData)
     predictedClass = clf.Predict(testData)
@@ -202,11 +226,21 @@ def HandleState2(frame, num):
         programState = 3
 
 def HandleState3(frame):
-    global programState, countForProgramState
+    global programState, successCount, numSuccesses
     pygameWindow.Draw_Instruction_Success()
-    if(countForProgramState > 50):
+    if(successCount >= 20):
+        numSuccesses += 1
         programState = 2
-    countForProgramState += 1
+    successCount += 1
+
+def HandleState4(frame):
+    global programState, failureCount, currentNumCorrect
+    if(failureCount >= 20):
+        programState = 2
+        currentNumCorrect = 1
+        failureCount = 0
+    failureCount += 1
+    pygameWindow.Draw_Instruction_Failure()
 
 def HandOverDevice(frame):
     if(len(frame.hands) > 0):
@@ -239,6 +273,7 @@ else:
 pickle.dump(database, open('userData/database.p','wb'))
 
 
+
 while True:
     pygameWindow.Prepare()
     frame = controller.frame()
@@ -250,21 +285,50 @@ while True:
     elif programState == 1:
         HandleState1(frame)
     elif programState == 2:
+        successCount = 0
+        if(numSuccesses >= 5 and reducedTimeStage == 0):
+            if(numbersToDisplay == 3):
+                numbersToDisplay = 4
+            elif(numbersToDisplay == 4):
+                numbersToDisplay = 5
+            elif(numbersToDisplay == 5):
+                numbersToDisplay = 6
+            elif(numbersToDisplay == 6):
+                numbersToDisplay = 7
+            elif(numbersToDisplay == 7):
+                numbersToDisplay = 8
+            elif(numbersToDisplay == 8):
+                numbersToDisplay = 9
+                reducedTimeStage = 1
+            numSuccesses = 0
+        if(numSuccesses >= 20 and reducedTimeStage == 1):
+            if(timeAllowedPerNumber == 40):
+                timeAllowedPerNumber = 35
+            if(timeAllowedPerNumber == 35):
+                timeAllowedPerNumber = 30
+            if(timeAllowedPerNumber == 30):
+                timeAllowedPerNumber = 25
+            numSuccesses = 0
+        if(numCounter >= timeAllowedPerNumber):
+            numCounter = 0
+            programState = 4
         if(currentNumCorrect == 1):
-            numToSign = randint(1,9)
-            while(numToSign == 8):
-                numToSign = randint(1,9)
+            numCounter = 0
+            numToSign = randint(1,numbersToDisplay)
             currentNumCorrect = 0
             countForNumCorrect = 0
             userEntry = database[userName]
             numToIncrement = userEntry['digit'+str(numToSign)+'attempted']
             numToIncrement += 1
             userEntry['digit'+str(numToSign)+'attempted'] = numToIncrement
-            print(database)
         HandleState2(frame,numToSign)
         pickle.dump(database, open('userData/database.p','wb'))
         pygameWindow.DrawDatabaseData(database, userName)
+        numCounter += 1
     elif programState == 3:
         HandleState3(frame)
+        pygameWindow.DrawDatabaseData(database, userName)
+    elif programState == 4:
+        HandleState4(frame)
         pygameWindow.DrawDatabaseData(database, userName)
     pygameWindow.Reveal()
