@@ -45,9 +45,10 @@ toggleHandColor = 0
 
 def Handle_Vector_From_Leap(v):
     global xMin, xMax, yMin, yMax
-    x = ScaleCoordinates(int(v[0]), xMin, xMax, 0, constants.pygameWindowWidth/2)
-    y = ScaleCoordinates(int(v[1]), yMin, yMax, 0, constants.pygameWindowDepth/2)
-    z = ScaleCoordinates(int(v[2]), yMin, yMax, 0, constants.pygameWindowDepth/2)
+    x = int(v[0])
+    y = int(v[1])
+    z = int(v[2])
+
     if(x < xMin):
         xMin = x
     if(x > xMax):
@@ -56,6 +57,11 @@ def Handle_Vector_From_Leap(v):
         yMin = y
     if(y > yMax):
         yMax = y
+
+    x = ScaleCoordinates(x, xMin, xMax, 0, constants.pygameWindowWidth/2)
+    y = ScaleCoordinates(y, yMin, yMax, 0, constants.pygameWindowDepth/2)
+    z = ScaleCoordinates(z, yMin, yMax, 0, constants.pygameWindowDepth/2)
+
     return x, y, z
 
 def Handle_Bone(bone):
@@ -85,12 +91,14 @@ def Handle_Frame(frame):
         Handle_Finger(finger)
 
 def ScaleCoordinates(value, rangeOneLow, rangeOneHigh, rangeTwoLow, rangeTwoHigh):
-    rangeOne = abs(rangeOneHigh - rangeOneLow)
-    if(rangeOne == 0):
-        return rangeTwoLow
-    else:
-        rangeTwo = abs(rangeTwoHigh - rangeTwoLow)
-        return int((((value - rangeOneLow) * rangeTwo) / rangeOne) + rangeTwoLow)
+    diff = value - rangeOneLow
+    oldRange = rangeOneHigh - rangeOneLow
+    newRange = rangeTwoHigh - rangeTwoLow
+    if(oldRange == 0):
+        return value
+    oldFraction = diff / oldRange
+    newValue = oldFraction * newRange
+    return newValue
 
 def CenterData(data):
     # Array to pass back
@@ -139,16 +147,16 @@ def Handle_Hand_Position(frame):
             pygameWindow.Draw_Instruction_Right()
             handPos = 0
             countForHandPos = 0
-        elif(x > 200):
+        elif(x > 400):
             pygameWindow.Draw_Instruction_Left()
             handPos = 0
             countForHandPos = 0
         else:
-            if(y < 110):
+            if(y < 100):
                 pygameWindow.Draw_Instruction_Up()
                 handPos = 0
                 countForHandPos = 0
-            elif(y > 190):
+            elif(y > 250):
                 pygameWindow.Draw_Instruction_Down()
                 handPos = 0
                 countForHandPos = 0

@@ -17,8 +17,10 @@ yMax = 100.0
 
 def Handle_Vector_From_Leap(v):
     global xMin, xMax, yMin, yMax
-    x = ScaleCoordinates(int(v[0]), xMin, xMax, 0, constants.pygameWindowWidth)
-    y = ScaleCoordinates(int(v[2]), yMin, yMax, 0, constants.pygameWindowDepth)
+
+    x = int(v[0])
+    y = int(v[2])
+
     if(x < xMin):
         xMin = x
     if(x > xMax):
@@ -27,6 +29,9 @@ def Handle_Vector_From_Leap(v):
         yMin = y
     if(y > yMax):
         yMax = y
+
+    x = ScaleCoordinates(x, xMin, xMax, 0, constants.pygameWindowWidth)
+    y = ScaleCoordinates(y, yMin, yMax, 0, constants.pygameWindowDepth)
     return x, y
 
 def Handle_Bone(bone):
@@ -49,12 +54,14 @@ def Handle_Frame(frame):
     pass
 
 def ScaleCoordinates(value, rangeOneLow, rangeOneHigh, rangeTwoLow, rangeTwoHigh):
-    rangeOne = abs(rangeOneHigh - rangeOneLow)
-    if(rangeOne == 0):
-        return rangeTwoLow
-    else:
-        rangeTwo = abs(rangeTwoHigh - rangeTwoLow)
-        return int((((value - rangeOneLow) * rangeTwo) / rangeOne) + rangeTwoLow)
+    diff = value - rangeOneLow
+    oldRange = rangeOneHigh - rangeOneLow
+    newRange = rangeTwoHigh - rangeTwoLow
+    if(oldRange == 0):
+        return value
+    oldFraction = diff / oldRange
+    newValue = oldFraction * newRange
+    return newValue
 
 controller = Leap.Controller()
 
