@@ -111,6 +111,21 @@ class PYGAME_WINDOW:
     def Draw9Num(self):
         image1 = pygame.image.load(r'./images/num9.jpg')
         self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+    def DrawArithmatic(self, additionOrSubtraction, numOne, numTwo):
+        font = pygame.font.Font('freesansbold.ttf', 28)
+        operator = ""
+
+        if (additionOrSubtraction == 0):
+            operator = " + "
+        elif (additionOrSubtraction == 1):
+            operator = " - "
+
+        text = str(numOne) + operator + str(numTwo)
+        fontColor = (255, 0, 255)
+        arithmaticFont = font.render(text, True, fontColor)
+        self.screen.blit(arithmaticFont, ((((constants.pygameWindowWidth/4)*3) - 32), (constants.pygameWindowDepth/4) - 8))
+
+
     def DrawDatabaseData(self, database, userName, numSuccesses, countAttempts, previousPercentage, currUserRank):
 
         # Digit attempts:

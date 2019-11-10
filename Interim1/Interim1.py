@@ -55,13 +55,20 @@ countForCorrectSign = 0
 displayNewDigit = True
 # digitToSign is set randomly to a digit for the user to sign.
 digitToSign = 0
-#numCounter is used to track when to display that the user has failed the current digit (if it is greater than timeAllowedPerNumber)
+# lastDigitShown holds the previous digit shown to the user.
+lastDigitShown = 0
+#numCounter is used to track when to display that the user has failed the current digit (if it is greater than timeAllowedPerNumber).
 numCounter = 0
+# timeAllowedPerNumber holds the amount of iterations before a failure.
 timeAllowedPerNumber = 40
 # counterForSuccessDisplay iterates every time success is displayed to the user, up until 20, then a new digit is shown to the user.
 counterForSuccessDisplay = 0
 # counterForFailureDisplay iterates every time failure is displayed to the user, up until 20, then a new digit is shown to the user.
 counterForFailureDisplay = 0
+# iterationsForSuccess stores the number of times iterated through HandleState3 that the success should be displayed until going back to a different program state.
+iterationsForSuccess = 20
+# iterationsForFailure stores the number of times iterated through HandleState4 that the failure should be displayed until going back to a different program state.
+iterationsForFailure = 20
 
 ############### SCAFFOLDING VARIABLES ###############
 
@@ -91,6 +98,18 @@ totalPercentage = 1.0
 countUsers = 0
 # currUserRank is increased when another user in the DB has a higher overall percentage than the current user.
 currUserRank = 1
+
+############### ARITHMATIC SECTION ###############
+# arithmaticStage tracks whether the user has made it to the arithmatic stage or not.
+arithmaticStage = False
+# correctAnswerForArithmatic stores the current value that the user should sign to answer the arithmatic shown.
+correctAnswerForArithmatic = 0
+# additionOrSubtraction tracks which operator to use for the arithmatic stage (0 = addition, 1 = subtraction).
+additionOrSubtraction = 0
+# firstNumForArithmatic stores the first value of the equation.
+firstNumForArithmatic = 0
+# secondNumForArithmatic stores the seconds value of the equation.
+secondNumForArithmatic = 0
 
 ############### FUNCTIONS ###############
 
@@ -282,11 +301,14 @@ def HandleState0(frame):
 
 # HandleState1 instructs the user to position their hand in the right location over the device.
 def HandleState1(frame):
-    global programState, countForHandPos
+    global programState, countForHandPos, arithmaticStage
     Handle_Frame(frame)
     # If hand is correctly over the device for a count of 150, move on to the signing portion of the program.
     if(countForHandPos >= 150):
-        programState = 2
+        if(arithmaticStage == True):
+            programState = 5
+        else:
+            programState = 2
     Handle_Hand_Position(frame)
     # If hand is not over device, show instruction to put hand over device.
     if not HandOverDevice(frame):
@@ -294,40 +316,47 @@ def HandleState1(frame):
 
 # HandleState2 displays a digit for the user to sign, and uses counts to decide whether the user signs the digit correctly or not.
 def HandleState2(frame):
-    global testData, clf, countForCorrectSign, displayNewDigit, programState, digitsToDisplay, toggleHandColor, successCounterForScaffolding, reducedTimeStage, timeAllowedPerNumber, numCounter, digitToSign, database, counterForFailureDisplay, counterForSuccessDisplay, allDigitsDisplayedAndSucceeded, digitsThatHaveBeenDisplayed
-    counterForSuccessDisplay = 0
+    global testData, clf, countForCorrectSign, displayNewDigit, programState, digitsToDisplay, toggleHandColor, successCounterForScaffolding, reducedTimeStage, timeAllowedPerNumber, numCounter, digitToSign, database, counterForFailureDisplay, counterForSuccessDisplay, allDigitsDisplayedAndSucceeded, digitsThatHaveBeenDisplayed, arithmaticStage, lastDigitShown
 
     if(successCounterForScaffolding >= 5 and reducedTimeStage == False):
         if(digitsToDisplay == 3 and 1 in digitsThatHaveBeenDisplayed and 2 in digitsThatHaveBeenDisplayed and 3 in digitsThatHaveBeenDisplayed):
             digitsToDisplay = 4
             digitToSign = 4
+            IncrementDatabaseNumber(digitToSign)
             displayNewDigit = False
             countForCorrectSign = 0
         elif(digitsToDisplay == 4 and 4 in digitsThatHaveBeenDisplayed):
             digitsToDisplay = 5
             digitToSign = 5
+            IncrementDatabaseNumber(digitToSign)
             displayNewDigit = False
             countForCorrectSign = 0
         elif(digitsToDisplay == 5 and 5 in digitsThatHaveBeenDisplayed):
             digitsToDisplay = 6
             digitToSign = 6
+            IncrementDatabaseNumber(digitToSign)
             displayNewDigit = False
             countForCorrectSign = 0
         elif(digitsToDisplay == 6 and 6 in digitsThatHaveBeenDisplayed):
             digitsToDisplay = 7
             digitToSign = 7
+            IncrementDatabaseNumber(digitToSign)
             displayNewDigit = False
             countForCorrectSign = 0
         elif(digitsToDisplay == 7 and 7 in digitsThatHaveBeenDisplayed):
             digitsToDisplay = 8
             digitToSign = 8
+            IncrementDatabaseNumber(digitToSign)
             displayNewDigit = False
             countForCorrectSign = 0
         elif(digitsToDisplay == 8 and 8 in digitsThatHaveBeenDisplayed):
             digitsToDisplay = 9
             digitToSign = 9
+            IncrementDatabaseNumber(digitToSign)
             displayNewDigit = False
             countForCorrectSign = 0
+        elif(digitsToDisplay == 9 and 9 in digitsThatHaveBeenDisplayed):
+            allDigitsDisplayedAndSucceeded = True
         successCounterForScaffolding = 0
 
     if(allDigitsDisplayedAndSucceeded == True and reducedTimeStage == False):
@@ -336,27 +365,32 @@ def HandleState2(frame):
 
     if(successCounterForScaffolding >= 20 and reducedTimeStage == True):
         if(timeAllowedPerNumber == 40):
+            print("Reducing time to 35.")
             timeAllowedPerNumber = 35
         if(timeAllowedPerNumber == 35):
+            print("Reducing time to 30.")
             timeAllowedPerNumber = 30
         if(timeAllowedPerNumber == 30):
+            print("Reducing time to 25.")
             timeAllowedPerNumber = 25
+        if(timeAllowedPerNumber == 25):
+            print("Reduced time stage passed. Arithmatic stage begins.")
+            arithmaticStage = True
+            programState = 5
+            timeAllowedPerNumber = 40
         successCounterForScaffolding = 0
 
-    if(numCounter >= timeAllowedPerNumber):
-        numCounter = 0
-        programState = 4
-
     if(displayNewDigit == True):
-        numCounter = lastDigitShown = digitToSign
-        while(digitToSign == lastDigitShown):
-            digitToSign = randint(0,digitsToDisplay)
+        numCounter = 0
+        if(digitsToDisplay not in digitsThatHaveBeenDisplayed and lastDigitShown != digitsToDisplay):
+            digitToSign = digitsToDisplay
+        else:
+            lastDigitShown = digitToSign
+            while(digitToSign == lastDigitShown):
+                digitToSign = randint(0,digitsToDisplay)
         displayNewDigit = False
         countForCorrectSign = 0
-        userEntry = database[userName]
-        numToIncrement = userEntry['digit'+str(digitToSign)+'attempted']
-        numToIncrement += 1
-        userEntry['digit'+str(digitToSign)+'attempted'] = numToIncrement
+        IncrementDatabaseNumber(digitToSign)
 
     DrawNumber(digitToSign)
     Handle_Frame(frame)
@@ -371,6 +405,12 @@ def HandleState2(frame):
     else:
         toggleHandColor = False
         countForCorrectSign = 0
+
+    # Display success if numCounter is greater than or equal to timeAllowedPerNumber
+    if(numCounter >= timeAllowedPerNumber):
+        if(predictedClass != digitToSign):
+            numCounter = 0
+            programState = 4
 
     # Display success if sign is correct for a count of 10
     if(countForCorrectSign >= 10):
@@ -387,25 +427,86 @@ def HandleState2(frame):
 
 # HandleState3 draws success on screen for a count of 20
 def HandleState3(frame):
-    global programState, counterForSuccessDisplay, successCounterForScaffolding, countAttempts, countSuccesses
+    global programState, counterForSuccessDisplay, successCounterForScaffolding, countAttempts, countSuccesses, arithmaticStage, iterationsForSuccess
     pygameWindow.Draw_Instruction_Success()
-    if(counterForSuccessDisplay >= 20):
+    if(counterForSuccessDisplay >= iterationsForSuccess):
         successCounterForScaffolding += 1
-        programState = 2
+        if(arithmaticStage == True):
+            programState = 5
+        else:
+            programState = 2
         countAttempts += 1
         countSuccesses += 1
+        counterForSuccessDisplay = 0
     counterForSuccessDisplay += 1
 
 # HandleState4 draws failure on the screen for a count of 20
 def HandleState4(frame):
-    global programState, counterForFailureDisplay, displayNewDigit, countAttempts
-    if(counterForFailureDisplay >= 20):
-        programState = 2
+    global programState, counterForFailureDisplay, displayNewDigit, countAttempts, arithmaticStage, iterationsForFailure
+    if(counterForFailureDisplay >= iterationsForFailure):
+        if(arithmaticStage == True):
+            programState = 5
+        else:
+            programState = 2
         displayNewDigit = True
         counterForFailureDisplay = 0
         countAttempts += 1
     counterForFailureDisplay += 1
     pygameWindow.Draw_Instruction_Failure()
+
+# HandleState5 begins to display basic arithmatic on the screen for the user to solve.
+def HandleState5(frame):
+    global testData, clf, arithmaticStage, countForCorrectSign, programState, toggleHandColor, displayNewDigit, correctAnswerForArithmatic, additionOrSubtraction, firstNumForArithmatic, secondNumForArithmatic, numCounter, timeAllowedPerNumber
+
+    if(displayNewDigit == True):
+        additionOrSubtraction = randint(0,1)
+
+        firstNumForArithmatic = 0
+        secondNumForArithmatic = 0
+        correctAnswerForArithmatic = 0
+
+        if (additionOrSubtraction == 0):
+            firstNumForArithmatic = randint(0,4)
+            secondNumForArithmatic = randint(0,5)
+            correctAnswerForArithmatic = firstNumForArithmatic + secondNumForArithmatic
+
+        elif (additionOrSubtraction == 1):
+            firstNumForArithmatic = randint(4,9)
+            secondNumForArithmatic = randint(0,4)
+            correctAnswerForArithmatic = firstNumForArithmatic - secondNumForArithmatic
+
+        countForCorrectSign = 0
+        displayNewDigit = False
+        numCounter = 0
+        IncrementDatabaseNumber(correctAnswerForArithmatic)
+
+    pygameWindow.DrawArithmatic(additionOrSubtraction, firstNumForArithmatic, secondNumForArithmatic)
+    Handle_Frame(frame)
+
+    testData = CenterData(testData)
+    predictedClass = clf.Predict(testData)
+
+    # Show hand color as green if sign is correct, black if sign is incorrect.
+    if(predictedClass == correctAnswerForArithmatic):
+        toggleHandColor = True
+        countForCorrectSign += 1
+    else:
+        toggleHandColor = False
+        countForCorrectSign = 0
+
+    # Display success if sign is correct for a count of 10.
+    if(countForCorrectSign >= 10):
+        toggleHandColor = False
+        displayNewDigit = True
+        programState = 3
+
+    # Display failure if sign is incorrect for the amount of time allowed per number.
+    if(numCounter >= timeAllowedPerNumber):
+        programState = 4
+        numCounter = 0
+
+    numCounter += 1
+
 
 # HandOverDevice determines whether a hand is over the device (true, false)
 def HandOverDevice(frame):
@@ -413,8 +514,16 @@ def HandOverDevice(frame):
         return True
     return False
 
+def IncrementDatabaseNumber(digitToSign):
+    global database, userName
+
+    userEntry = database[userName]
+    numToIncrement = userEntry['digit'+str(digitToSign)+'attempted']
+    numToIncrement += 1
+    userEntry['digit'+str(digitToSign)+'attempted'] = numToIncrement
+
 def HandleDatabase():
-    global database, userName, countUsers, currUserRank
+    global database, userName, countUsers, currUserRank, arithmaticStage, digitsToDisplay, digitsThatHaveBeenDisplayed, allDigitsDisplayedAndSucceeded, reducedTimeStage
 
     userName = raw_input('Please enter your name: ')
 
@@ -425,6 +534,11 @@ def HandleDatabase():
         incrementMe += 1
         userEntry['logins'] = incrementMe
         previousPercentage = userEntry['percentSuccess']
+        arithmaticStage = userEntry['arithmaticStage']
+        digitsToDisplay = userEntry['digitsToDisplay']
+        digitsThatHaveBeenDisplayed = userEntry['digitsThatHaveBeenDisplayed']
+        allDigitsDisplayedAndSucceeded = userEntry['allDigitsDisplayedAndSucceeded']
+        reducedTimeStage = userEntry['reducedTimeStage']
     else:
         database[userName] = {'logins': 1}
         print('welcome ' + userName + '.')
@@ -432,6 +546,11 @@ def HandleDatabase():
         for i in range(0,10):
             userEntry['digit'+str(i)+'attempted'] = 0
         userEntry['totalPercentage'] = 0.0
+        userEntry['arithmaticStage'] = False
+        userEntry['digitsToDisplay'] = digitsToDisplay
+        userEntry['digitsThatHaveBeenDisplayed'] = digitsThatHaveBeenDisplayed
+        userEntry['allDigitsDisplayedAndSucceeded'] = allDigitsDisplayedAndSucceeded
+        userEntry['reducedTimeStage'] = reducedTimeStage
 
     totalPercentage = userEntry['totalPercentage']
     currUserTotalPercentageCalculated = totalPercentage / userEntry['logins']
@@ -444,7 +563,7 @@ def HandleDatabase():
 
 # exit_handler is called on exit of program, saves user data (percentSuccess, totalPercentage)
 def exit_handler():
-    global database, userName, countAttempts, countSuccesses
+    global database, userName, countAttempts, countSuccesses, arithmaticStage, digitsToDisplay, digitsThatHaveBeenDisplayed, allDigitsDisplayedAndSucceeded, reducedTimeStage
     userEntry = database[userName]
     prevSuccessRate = 0
 
@@ -459,6 +578,11 @@ def exit_handler():
     totalPercentage = userEntry['totalPercentage']
     totalPercentage += prevSuccessRate
     userEntry['totalPercentage'] = totalPercentage
+    userEntry['arithmaticStage'] = arithmaticStage
+    userEntry['digitsToDisplay'] = digitsToDisplay
+    userEntry['digitsThatHaveBeenDisplayed'] = digitsThatHaveBeenDisplayed
+    userEntry['allDigitsDisplayedAndSucceeded'] = allDigitsDisplayedAndSucceeded
+    userEntry['reducedTimeStage'] = reducedTimeStage
 
     pickle.dump(database, open('userData/database.p','wb'))
 
@@ -491,6 +615,9 @@ while True:
         pygameWindow.DrawDatabaseData(database, userName, countSuccesses, countAttempts, previousPercentage, currUserRank)
     elif programState == 4:
         HandleState4(frame)
+        pygameWindow.DrawDatabaseData(database, userName, countSuccesses, countAttempts, previousPercentage, currUserRank)
+    elif programState == 5:
+        HandleState5(frame)
         pygameWindow.DrawDatabaseData(database, userName, countSuccesses, countAttempts, previousPercentage, currUserRank)
 
     pygameWindow.Reveal()
