@@ -51,6 +51,12 @@ class PYGAME_WINDOW:
     def Draw_Instruction_Failure(self):
         image = pygame.image.load(r'./images/failure.png')
         self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+    def Draw0(self):
+        image = pygame.image.load(r'./images/0.png')
+        self.screen.blit(image, (constants.pygameWindowWidth/2,0))
+    def Draw0Num(self):
+        image1 = pygame.image.load(r'./images/num0.png')
+        self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
     def Draw1(self):
         image = pygame.image.load(r'./images/1.png')
         self.screen.blit(image, (constants.pygameWindowWidth/2,0))
@@ -109,6 +115,7 @@ class PYGAME_WINDOW:
 
         # Digit attempts:
         userEntry = database[userName]
+        zero = userEntry['digit'+str(0)+'attempted']
         one = userEntry['digit'+str(1)+'attempted']
         two = userEntry['digit'+str(2)+'attempted']
         three = userEntry['digit'+str(3)+'attempted']
@@ -120,6 +127,7 @@ class PYGAME_WINDOW:
         nine = userEntry['digit'+str(9)+'attempted']
         font = pygame.font.Font('freesansbold.ttf', 16)
         text = ["Number of attempts: ",
+                "0: " + str(zero),
                 "1: " + str(one),
                 "2: " + str(two),
                 "3: " + str(three),

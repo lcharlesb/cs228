@@ -13,14 +13,14 @@ from random import randint
 import time
 import atexit
 
-seed(2)
+seed(randint(0,100))
 
 ############### HAND POSITION VARIABLES ###############
 
 # The controller object itself.
 controller = Leap.Controller()
-# The window used to display to the user.
-pygameWindow = PYGAME_WINDOW()
+# The window used to display to the user. Set to none originally so window does not show until user enters their name.
+pygameWindow = None
 # x, y, z used as coordinates for hand tracking
 x = 250
 y = 250
@@ -68,9 +68,13 @@ counterForFailureDisplay = 0
 # successCounterForScaffolding is first used to add another digit to display to the user every 5 successes,
 # and then used to decrease the time allowed every 20 successes.
 successCounterForScaffolding = 0
-# numbersToDisplay determines the pool from which the random digit will be chosen from.
+# digitsToDisplay determines the pool from which the random digit will be chosen from.
 # Incremented once every time successCounterForScaffolding reaches 5, until all 9 digits are presented to the user.
-numbersToDisplay = 3
+digitsToDisplay = 3
+# digitsThatHaveBeenDisplayed is a list of the digits that the user has seen.
+digitsThatHaveBeenDisplayed = []
+# allDigitsDisplayedAndSucceeded is a boolean of whether the user has seen all the digits or not.
+allDigitsDisplayedAndSucceeded = False
 # reducedTimeStage is set to True once all 9 digits have been displayed to the user.
 reducedTimeStage = False
 # countAttempts is incremented upon success or failure to sign a digit, and is used to calculate the user's percentage of correctly signed digits.
@@ -226,43 +230,46 @@ def Handle_Hand_Position(frame):
                     countForHandPos += 1
 
 def DrawNumber(num):
-    global numbersToDisplay, pygameWindow
-
-    if(num == 1):
+    global allDigitsDisplayedAndSucceeded, pygameWindow
+    if(num == 0):
+        pygameWindow.Draw0()
+        if(allDigitsDisplayedAndSucceeded == False):
+            pygameWindow.Draw0Num()
+    elif(num == 1):
         pygameWindow.Draw1()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw1Num()
     elif(num == 2):
         pygameWindow.Draw2()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw2Num()
     elif(num == 3):
         pygameWindow.Draw3()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw3Num()
     elif(num == 4):
         pygameWindow.Draw4()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw4Num()
     elif(num == 5):
         pygameWindow.Draw5()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw5Num()
     elif(num == 6):
         pygameWindow.Draw6()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw6Num()
     elif(num == 7):
         pygameWindow.Draw7()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw7Num()
     elif(num == 8):
         pygameWindow.Draw8()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw8Num()
     elif(num == 9):
         pygameWindow.Draw9()
-        if(numbersToDisplay != 9):
+        if(allDigitsDisplayedAndSucceeded == False):
             pygameWindow.Draw9Num()
 
 # HandleState0 draws instructions for the user to put their hand over the device.
@@ -287,26 +294,47 @@ def HandleState1(frame):
 
 # HandleState2 displays a digit for the user to sign, and uses counts to decide whether the user signs the digit correctly or not.
 def HandleState2(frame):
-    global testData, clf, countForCorrectSign, displayNewDigit, programState, numbersToDisplay, toggleHandColor, successCounterForScaffolding, reducedTimeStage, timeAllowedPerNumber, numCounter, digitToSign, database, counterForFailureDisplay, counterForSuccessDisplay
+    global testData, clf, countForCorrectSign, displayNewDigit, programState, digitsToDisplay, toggleHandColor, successCounterForScaffolding, reducedTimeStage, timeAllowedPerNumber, numCounter, digitToSign, database, counterForFailureDisplay, counterForSuccessDisplay, allDigitsDisplayedAndSucceeded, digitsThatHaveBeenDisplayed
     counterForSuccessDisplay = 0
 
     if(successCounterForScaffolding >= 5 and reducedTimeStage == False):
-        if(numbersToDisplay == 3):
-            numbersToDisplay = 4
-        elif(numbersToDisplay == 4):
-            numbersToDisplay = 5
-        elif(numbersToDisplay == 5):
-            numbersToDisplay = 6
-        elif(numbersToDisplay == 6):
-            numbersToDisplay = 7
-        elif(numbersToDisplay == 7):
-            numbersToDisplay = 8
-        elif(numbersToDisplay == 8):
-            numbersToDisplay = 9
-            reducedTimeStage = True
+        if(digitsToDisplay == 3 and 1 in digitsThatHaveBeenDisplayed and 2 in digitsThatHaveBeenDisplayed and 3 in digitsThatHaveBeenDisplayed):
+            digitsToDisplay = 4
+            digitToSign = 4
+            displayNewDigit = False
+            countForCorrectSign = 0
+        elif(digitsToDisplay == 4 and 4 in digitsThatHaveBeenDisplayed):
+            digitsToDisplay = 5
+            digitToSign = 5
+            displayNewDigit = False
+            countForCorrectSign = 0
+        elif(digitsToDisplay == 5 and 5 in digitsThatHaveBeenDisplayed):
+            digitsToDisplay = 6
+            digitToSign = 6
+            displayNewDigit = False
+            countForCorrectSign = 0
+        elif(digitsToDisplay == 6 and 6 in digitsThatHaveBeenDisplayed):
+            digitsToDisplay = 7
+            digitToSign = 7
+            displayNewDigit = False
+            countForCorrectSign = 0
+        elif(digitsToDisplay == 7 and 7 in digitsThatHaveBeenDisplayed):
+            digitsToDisplay = 8
+            digitToSign = 8
+            displayNewDigit = False
+            countForCorrectSign = 0
+        elif(digitsToDisplay == 8 and 8 in digitsThatHaveBeenDisplayed):
+            digitsToDisplay = 9
+            digitToSign = 9
+            displayNewDigit = False
+            countForCorrectSign = 0
         successCounterForScaffolding = 0
 
-    if(successCounterForScaffolding >= 20 and reducedTimeStage == False):
+    if(allDigitsDisplayedAndSucceeded == True and reducedTimeStage == False):
+        reducedTimeStage = True
+        print("All digits succeeded: Reduced time stage begins.")
+
+    if(successCounterForScaffolding >= 20 and reducedTimeStage == True):
         if(timeAllowedPerNumber == 40):
             timeAllowedPerNumber = 35
         if(timeAllowedPerNumber == 35):
@@ -320,8 +348,9 @@ def HandleState2(frame):
         programState = 4
 
     if(displayNewDigit == True):
-        numCounter = 0
-        digitToSign = randint(1,numbersToDisplay)
+        numCounter = lastDigitShown = digitToSign
+        while(digitToSign == lastDigitShown):
+            digitToSign = randint(0,digitsToDisplay)
         displayNewDigit = False
         countForCorrectSign = 0
         userEntry = database[userName]
@@ -348,6 +377,9 @@ def HandleState2(frame):
         toggleHandColor = False
         displayNewDigit = True
         programState = 3
+
+        if digitToSign not in digitsThatHaveBeenDisplayed:
+            digitsThatHaveBeenDisplayed.append(digitToSign)
 
     numCounter += 1
 
@@ -397,7 +429,7 @@ def HandleDatabase():
         database[userName] = {'logins': 1}
         print('welcome ' + userName + '.')
         userEntry = database[userName]
-        for i in range(1,10):
+        for i in range(0,10):
             userEntry['digit'+str(i)+'attempted'] = 0
         userEntry['totalPercentage'] = 0.0
 
@@ -430,9 +462,13 @@ def exit_handler():
 
     pickle.dump(database, open('userData/database.p','wb'))
 
+atexit.register(exit_handler)
+
 ############### LOCAL CODE (basically main) ###############
 
 HandleDatabase()
+
+pygameWindow = PYGAME_WINDOW()
 
 while True:
 
@@ -458,5 +494,3 @@ while True:
         pygameWindow.DrawDatabaseData(database, userName, countSuccesses, countAttempts, previousPercentage, currUserRank)
 
     pygameWindow.Reveal()
-
-atexit.register(exit_handler)
