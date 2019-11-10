@@ -318,7 +318,7 @@ def HandleState1(frame):
 def HandleState2(frame):
     global testData, clf, countForCorrectSign, displayNewDigit, programState, digitsToDisplay, toggleHandColor, successCounterForScaffolding, reducedTimeStage, timeAllowedPerNumber, numCounter, digitToSign, database, counterForFailureDisplay, counterForSuccessDisplay, allDigitsDisplayedAndSucceeded, digitsThatHaveBeenDisplayed, arithmaticStage, lastDigitShown
 
-    if(successCounterForScaffolding >= 5 and reducedTimeStage == False):
+    if(allDigitsDisplayedAndSucceeded == False and successCounterForScaffolding >= 5 and reducedTimeStage == False):
         if(digitsToDisplay == 3 and 1 in digitsThatHaveBeenDisplayed and 2 in digitsThatHaveBeenDisplayed and 3 in digitsThatHaveBeenDisplayed):
             digitsToDisplay = 4
             digitToSign = 4
@@ -359,21 +359,22 @@ def HandleState2(frame):
             allDigitsDisplayedAndSucceeded = True
         successCounterForScaffolding = 0
 
-    if(allDigitsDisplayedAndSucceeded == True and reducedTimeStage == False):
+    if(allDigitsDisplayedAndSucceeded == True and reducedTimeStage == False and successCounterForScaffolding >= 15):
+        successCounterForScaffolding = 0
         reducedTimeStage = True
         print("All digits succeeded: Reduced time stage begins.")
 
-    if(successCounterForScaffolding >= 20 and reducedTimeStage == True):
+    if(successCounterForScaffolding >= 8 and reducedTimeStage == True):
         if(timeAllowedPerNumber == 40):
             print("Reducing time to 35.")
             timeAllowedPerNumber = 35
-        if(timeAllowedPerNumber == 35):
+        elif(timeAllowedPerNumber == 35):
             print("Reducing time to 30.")
             timeAllowedPerNumber = 30
-        if(timeAllowedPerNumber == 30):
+        elif(timeAllowedPerNumber == 30):
             print("Reducing time to 25.")
             timeAllowedPerNumber = 25
-        if(timeAllowedPerNumber == 25):
+        elif(timeAllowedPerNumber == 25):
             print("Reduced time stage passed. Arithmatic stage begins.")
             arithmaticStage = True
             programState = 5
@@ -502,8 +503,9 @@ def HandleState5(frame):
 
     # Display failure if sign is incorrect for the amount of time allowed per number.
     if(numCounter >= timeAllowedPerNumber):
-        programState = 4
-        numCounter = 0
+        if(predictedClass != correctAnswerForArithmatic):
+            numCounter = 0
+            programState = 4
 
     numCounter += 1
 
