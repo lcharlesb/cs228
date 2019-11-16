@@ -73,6 +73,8 @@ counterForFailureDisplay = 0
 iterationsForSuccess = 20
 # iterationsForFailure stores the number of times iterated through HandleState4 that the failure should be displayed until going back to a different program state.
 iterationsForFailure = 20
+# iterationsThroughAllDigits tracks how many times the user has gone through each digit. After 2 iterations, instructions stop showing. After one more iteration, PS 5.
+iterationsThroughAllDigits = 0
 
 ################### FUNCTIONS ####################
 
@@ -293,11 +295,20 @@ def HandleState1(frame):
         programState = 0
 
 def HandleState2(frame):
-    global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor
+    global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor, iterationsThroughAllDigits, displayInstructions
 
     if(displayNewDigit == True):
         if(digitToSign == 9):
             digitToSign = 0
+            iterationsThroughAllDigits += 1
+            if(iterationsThroughAllDigits == 2):
+                displayInstructions = False
+                Handle_Frame(frame)
+                return
+            elif(iterationsThroughAllDigits == 4):
+                programState = 5
+                Handle_Frame(frame)
+                return
         else:
             digitToSign += 1
         displayNewDigit = False
