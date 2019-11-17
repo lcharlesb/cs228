@@ -121,14 +121,28 @@ class PYGAME_WINDOW:
         image1 = pygame.image.load(r'./images/num9.jpg')
         self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
 
-    def Display_CountDown(self, numberToDisplay):
+    def Display_CountDown(self, numberToDisplay, xMinus):
         font = pygame.font.Font('freesansbold.ttf', 64)
         fontColor = (0,0,0)
         countDownFont = font.render(str(numberToDisplay), True, fontColor)
-        self.screen.blit(countDownFont, (constants.pygameWindowWidth/2, constants.pygameWindowDepth/2))
+        self.screen.blit(countDownFont, (constants.pygameWindowWidth/2 - xMinus, constants.pygameWindowDepth/2))
+    def Display_Game_CountDown(self, numberToDisplay):
+        font = pygame.font.Font('freesansbold.ttf', 64)
+        fontColor = (0,0,0)
+        countDownFont = font.render(str(numberToDisplay), True, fontColor)
+        self.screen.blit(countDownFont, (constants.pygameWindowWidth/2 - 34, constants.pygameWindowDepth/12))
+
+    def Display_Score_During_Game(self, numberToDisplay):
+        if(numberToDisplay == 0):
+            numberToDisplay = "000"
+
+        font = pygame.font.Font('freesansbold.ttf', 38)
+        fontColor = (0,0,0)
+        countDownFont = font.render("Score: " + str(numberToDisplay), True, fontColor)
+        self.screen.blit(countDownFont, (constants.pygameWindowWidth/2 - 96, (constants.pygameWindowDepth/12) * 8))
 
     def DrawArithmatic(self, additionOrSubtraction, numOne, numTwo):
-        font = pygame.font.Font('freesansbold.ttf', 28)
+        font = pygame.font.Font('freesansbold.ttf', 80)
         operator = ""
 
         if (additionOrSubtraction == 0):
@@ -137,6 +151,6 @@ class PYGAME_WINDOW:
             operator = " - "
 
         text = str(numOne) + operator + str(numTwo)
-        fontColor = (255, 0, 255)
+        fontColor = (255, 0, 0)
         arithmaticFont = font.render(text, True, fontColor)
-        self.screen.blit(arithmaticFont, ((((constants.pygameWindowWidth/4)*3) - 32), (constants.pygameWindowDepth/4) - 8))
+        self.screen.blit(arithmaticFont, (((constants.pygameWindowWidth/2) - 80), (constants.pygameWindowDepth/2) - 12))
