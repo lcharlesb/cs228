@@ -335,8 +335,9 @@ def HandleState2(frame):
             if(iterationsThroughAllDigits == 2):
                 displayInstructions = False
                 Handle_Frame(frame)
+                digitToSign = -1
                 return
-            elif(iterationsThroughAllDigits == 4):
+            elif(iterationsThroughAllDigits == 3):
                 displayNewDigit = True
                 programState = 5
                 Handle_Frame(frame)
@@ -419,6 +420,8 @@ def HandleState5(frame):
     else:
         programState = 6
         previousSeconds = 0
+        countForClockBeforeGame = 5
+        beforeGameCountDownFirstIteration = True
         arithmaticStage = True
 
 def HandleState6(frame):
@@ -438,6 +441,9 @@ def HandleState6(frame):
     else:
         programState = 7
         previousSeconds = 0
+        numCounter = 0
+        countForClockDuringGame = 60
+        duringGameCountDownFirstIteration = True
         return
 
     # Arithmatic part
@@ -490,6 +496,17 @@ def HandleState6(frame):
 
     numCounter += 1
 
+def HandleState7(frame):
+    global score, programState
+
+    pygameWindow.Display_Game_End(score)
+
+    keys = pygame.key.get_pressed()
+
+    if(keys[pygame.K_p]):
+        programState = 5
+        score = 0
+
 #################### LOCAL CODE ####################
 
 while True:
@@ -512,5 +529,15 @@ while True:
         HandleState5(frame)
     elif programState == 6:
         HandleState6(frame)
+    elif programState == 7:
+        HandleState7(frame)
 
     pygameWindow.Reveal()
+
+    # Press 'x' key to exit game at any point.
+    keys = pygame.key.get_pressed()
+
+    if(keys[pygame.K_x]):
+        pygame.display.quit()
+        pygame.quit()
+        sys.exit()

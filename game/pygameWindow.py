@@ -154,3 +154,15 @@ class PYGAME_WINDOW:
         fontColor = (255, 0, 0)
         arithmaticFont = font.render(text, True, fontColor)
         self.screen.blit(arithmaticFont, (((constants.pygameWindowWidth/2) - 80), (constants.pygameWindowDepth/2) - 12))
+
+    def Display_Game_End(self, score):
+        if(score == 0):
+            score = "000"
+
+        font = pygame.font.Font('freesansbold.ttf', 38)
+        fontColor = (0,0,0)
+        finalScoreFont = font.render("Your Score: " + str(score), True, fontColor)
+        self.screen.blit(finalScoreFont, (constants.pygameWindowWidth/2 - 152, constants.pygameWindowDepth/12))
+
+        instructionalFont = font.render("Press 'p' to play again", True, fontColor)
+        self.screen.blit(instructionalFont, (constants.pygameWindowWidth/2 - 200, constants.pygameWindowDepth/2 - 18))
