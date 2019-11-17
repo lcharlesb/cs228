@@ -48,7 +48,7 @@ testData = np.zeros((1,30),dtype='f')
 ################### PROGRAM LOGIC VARIABLES ###################
 
 # programState is used to transition between stages of the program.
-programState = 0
+programState = 5
 # countForHandPos is used to track the hand position during program state 1.
 countForHandPos = 0
 # toggleHandColor: True = green, False = black.
@@ -75,6 +75,17 @@ iterationsForSuccess = 20
 iterationsForFailure = 20
 # iterationsThroughAllDigits tracks how many times the user has gone through each digit. After 2 iterations, instructions stop showing. After one more iteration, PS 5.
 iterationsThroughAllDigits = 0
+
+# countDownClockBeforeGame is the clock object used to count down before the game begins
+countDownClockBeforeGame = pygame.time.Clock()
+# countForClockBeforeGame is an integer value used to hold the countdown value
+countForClockBeforeGame = 5
+# gameCountDownFirstIteration tracks whether it is the first iteration through programState 5
+gameCountDownFirstIteration = True
+# startTickForCountDown is the beginning tick value when program first enters state 5.
+startTickForCountDown = pygame.time.get_ticks()
+# previousSeconds holds the last integer seconds value for the countDown
+previousSeconds = 0
 
 ################### FUNCTIONS ####################
 
@@ -366,6 +377,27 @@ def HandleState4(frame):
         counterForFailureDisplay = 0
     counterForFailureDisplay += 1
 
+def HandleState5(frame):
+    global countForClockBeforeGame, gameCountDownFirstIteration, startTickForCountDown, previousSeconds
+
+    if(gameCountDownFirstIteration == True):
+        startTickForCountDown = pygame.time.get_ticks()
+        gameCountDownFirstIteration = False
+
+    if(countForClockBeforeGame >= 1):
+        pygameWindow.Display_CountDown(countForClockBeforeGame)
+        seconds = int((pygame.time.get_ticks() - startTickForCountDown) / 1000)
+        if(seconds != previousSeconds):
+            previousSeconds = seconds
+            countForClockBeforeGame -= 1
+    elif(countForClockBeforeGame == 0):
+        pygameWindow.Display_CountDown("Go!")
+        seconds = int((pygame.time.get_ticks() - startTickForCountDown) / 1000)
+        if(seconds != previousSeconds):
+            countForClockBeforeGame -= 1
+    else:
+        programState = 6
+
 #################### LOCAL CODE ####################
 
 while True:
@@ -374,8 +406,8 @@ while True:
     frame = controller.frame()
     k = 0
 
-    if(len(frame.hands) < 1):
-        programState = 0
+    # if(len(frame.hands) < 1):
+    #     programState = 0
 
     if programState == 0:
         HandleState0(frame)
@@ -387,5 +419,7 @@ while True:
         HandleState3(frame)
     elif programState == 4:
         HandleState4(frame)
+    elif programState == 5:
+        HandleState5(frame)
 
     pygameWindow.Reveal()

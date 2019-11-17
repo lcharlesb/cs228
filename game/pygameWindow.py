@@ -15,7 +15,6 @@ class PYGAME_WINDOW:
         screenInfoObject = pygame.display.Info()
         pygameWindowWidth = screenInfoObject.current_w
         pygameWindowDepth = screenInfoObject.current_h
-        print(pygameWindowWidth, pygameWindowDepth)
 
     def Prepare(self):
         pygame.event.get()
@@ -121,3 +120,23 @@ class PYGAME_WINDOW:
     def Draw9Num(self):
         image1 = pygame.image.load(r'./images/num9.jpg')
         self.screen.blit(image1, (constants.pygameWindowWidth/2,constants.pygameWindowDepth/2))
+
+    def Display_CountDown(self, numberToDisplay):
+        font = pygame.font.Font('freesansbold.ttf', 64)
+        fontColor = (0,0,0)
+        countDownFont = font.render(str(numberToDisplay), True, fontColor)
+        self.screen.blit(countDownFont, (constants.pygameWindowWidth/2, constants.pygameWindowDepth/2))
+
+    def DrawArithmatic(self, additionOrSubtraction, numOne, numTwo):
+        font = pygame.font.Font('freesansbold.ttf', 28)
+        operator = ""
+
+        if (additionOrSubtraction == 0):
+            operator = " + "
+        elif (additionOrSubtraction == 1):
+            operator = " - "
+
+        text = str(numOne) + operator + str(numTwo)
+        fontColor = (255, 0, 255)
+        arithmaticFont = font.render(text, True, fontColor)
+        self.screen.blit(arithmaticFont, ((((constants.pygameWindowWidth/4)*3) - 32), (constants.pygameWindowDepth/4) - 8))
