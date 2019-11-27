@@ -76,11 +76,6 @@ iterationsForFailure = 20
 # iterationsThroughAllDigits tracks how many times the user has gone through each digit. After 2 iterations, instructions stop showing. After one more iteration, PS 5.
 iterationsThroughAllDigits = 0
 
-# countForTutorial keeps a count of iterations before program goes to the tutorial
-countForTutorial = 0
-# countForGame keeps a count of iterations before program goes to the game
-countForGame = 0
-
 # countForClockBeforeGame is an integer value used to hold the countdown value.
 countForClockBeforeGame = 5
 # beforeGameCountDownFirstIteration tracks whether it is the first iteration through programState 5.
@@ -329,65 +324,7 @@ def HandleState1(frame):
     if not HandOverDevice(frame):
         programState = 0
 
-# HandleState2 shows the menu and waits for the user to sign
 def HandleState2(frame):
-    global testData, clf, programState, toggleHandColor, countForTutorial, countForGame
-
-    pygameWindow.Draw_Menu()
-
-    Handle_Frame(frame)
-
-    testData = CenterData(testData)
-    predictedClass = clf.Predict(testData)
-
-    if(predictedClass == 0):
-        toggleHandColor = True
-        countForTutorial += 1
-    elif(predictedClass == 1):
-        toggleHandColor = True
-        countForGame += 1
-    else:
-        toggleHandColor = False
-        countForTutorial = 0
-        countForGame = 0
-
-    if(countForTutorial >= 10):
-        toggleHandColor = False
-        countForTutorial = 0
-        programState = 5
-
-    if(countForGame >= 10):
-        toggleHandColor = False
-        countForGame = 0
-        programState = 6
-
-# HandleState3 draws success on screen for a count of 20
-def HandleState3(frame):
-    global programState, counterForSuccessDisplay, iterationsForSuccess
-
-    pygameWindow.Draw_Instruction_Success()
-    Handle_Frame(frame)
-
-    if(counterForSuccessDisplay >= iterationsForSuccess):
-        programState = 5
-        counterForSuccessDisplay = 0
-
-    counterForSuccessDisplay += 1
-
-# HandleState4 draws failure on screen for a count of 20
-def HandleState4(frame):
-    global programState, counterForFailureDisplay, iterationsForFailure
-
-    pygameWindow.Draw_Instruction_Failure()
-    Handle_Frame(frame)
-
-    if(counterForFailureDisplay >= iterationsForFailure):
-        programState = 5
-        counterForFailureDisplay = 0
-    counterForFailureDisplay += 1
-
-# HandleState5 is the tutorial phase of the program
-def HandleState5(frame):
     global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor, iterationsThroughAllDigits, displayInstructions
 
     if(displayNewDigit == True):
@@ -401,7 +338,7 @@ def HandleState5(frame):
                 return
             elif(iterationsThroughAllDigits == 3):
                 displayNewDigit = True
-                programState = 2
+                programState = 5
                 Handle_Frame(frame)
                 return
         else:
@@ -437,11 +374,32 @@ def HandleState5(frame):
 
     numCounter += 1
 
-# HandleState6 is the countdown before the game
-def HandleState6(frame):
-    global countForClockBeforeGame, beforeGameCountDownFirstIteration, startTickForCountDown, previousSeconds, programState, arithmaticStage
+# HandleState3 draws success on screen for a count of 20
+def HandleState3(frame):
+    global programState, counterForSuccessDisplay, iterationsForSuccess
 
+    pygameWindow.Draw_Instruction_Success()
     Handle_Frame(frame)
+
+    if(counterForSuccessDisplay >= iterationsForSuccess):
+        programState = 2
+        counterForSuccessDisplay = 0
+
+    counterForSuccessDisplay += 1
+
+def HandleState4(frame):
+    global programState, counterForFailureDisplay, iterationsForFailure
+
+    pygameWindow.Draw_Instruction_Failure()
+    Handle_Frame(frame)
+
+    if(counterForFailureDisplay >= iterationsForFailure):
+        programState = 2
+        counterForFailureDisplay = 0
+    counterForFailureDisplay += 1
+
+def HandleState5(frame):
+    global countForClockBeforeGame, beforeGameCountDownFirstIteration, startTickForCountDown, previousSeconds, programState, arithmaticStage
 
     if(beforeGameCountDownFirstIteration == True):
         startTickForCountDown = pygame.time.get_ticks()
@@ -459,14 +417,13 @@ def HandleState6(frame):
         if(seconds != previousSeconds):
             countForClockBeforeGame -= 1
     else:
-        programState = 7
+        programState = 6
         previousSeconds = 0
         countForClockBeforeGame = 5
         beforeGameCountDownFirstIteration = True
         arithmaticStage = True
 
-# HandleState7 is the actual game
-def HandleState7(frame):
+def HandleState6(frame):
     global countForClockDuringGame, duringGameCountDownFirstIteration, startTickForCountDown, previousSeconds, displayNewDigit, correctAnswerForArithmatic, additionOrSubtraction, firstNumForArithmatic, secondNumForArithmatic, numCounter, countForCorrectSign, testData, clf, toggleHandColor, programState, timeAllowedPerNumber, arithmaticStage, score
 
     # Timer part
@@ -481,7 +438,7 @@ def HandleState7(frame):
             previousSeconds = seconds
             countForClockDuringGame -= 1
     else:
-        programState = 2
+        programState = 7
         previousSeconds = 0
         numCounter = 0
         countForClockDuringGame = 60
@@ -537,6 +494,17 @@ def HandleState7(frame):
             numCounter = 0
 
     numCounter += 1
+
+def HandleState7(frame):
+    global score, programState
+
+    pygameWindow.Display_Game_End(score)
+
+    keys = pygame.key.get_pressed()
+
+    if(keys[pygame.K_p]):
+        programState = 5
+        score = 0
 
 #################### LOCAL CODE ####################
 
