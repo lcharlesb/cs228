@@ -121,6 +121,14 @@ score = 0
 # countForScoreboard is an integer value used to hold the count for displaying the scoreboard.
 countForScoreboard = 0
 
+#################### PERFORMANCE DATA VARIABLES ####################
+
+# programTicker is used to track time spent in each programState.
+programTicker = 0
+# previousTicks stores the number of ticks up to the previous program state switch.
+previousTicks = 0
+# previousProgramState stores the last programState the user was in.
+previousProgramState = 0
 
 ################### FUNCTIONS ####################
 
@@ -596,6 +604,22 @@ def HandleDatabase():
         userEntry['silver'] = -1
         userEntry['bronze'] = -1
 
+        userEntry['s0visits'] = 0
+        userEntry['s1visits'] = 0
+        userEntry['s2visits'] = 0
+        userEntry['s5visits'] = 0
+        userEntry['s6visits'] = 0
+        userEntry['s7visits'] = 0
+        userEntry['s8visits'] = 0
+
+        userEntry['s0mean'] = 0
+        userEntry['s1mean'] = 0
+        userEntry['s2mean'] = 0
+        userEntry['s5mean'] = 0
+        userEntry['s6mean'] = 0
+        userEntry['s7mean'] = 0
+        userEntry['s8mean'] = 0
+
 # LogScore logs the user's most recent game score (if it is gold, silver or bronze).
 def LogScore():
     global score, userEntry, gold, silver, bronze
@@ -614,6 +638,38 @@ def LogScore():
     userEntry['silver'] = silver
     userEntry['bronze'] = bronze
 
+# LogPerformanceData is called every time a user switches program states.
+def LogPerformanceData():
+    global programState, previousProgramState, programTicker, previousTicks, userEntry
+
+    # Get current ticks since program start
+    programTicker = pygame.time.get_ticks()
+
+    # Get time spent in past programState
+    timeSpent = round((programTicker - previousTicks)/1000,2)
+
+    # Get user data from database about number of visits to current previous state and increment
+    stateVisits = userEntry['s' + str(previousProgramState) + 'visits']
+    stateVisits += 1
+    userEntry['s' + str(previousProgramState) + 'visits'] = stateVisits
+
+    # Get user data from database about mean time spent in previous state and add current time spent
+    stateCumulativeMean = userEntry['s' + str(previousProgramState) + 'mean']
+    stateCumulativeMean += timeSpent
+    userEntry['s' + str(previousProgramState) + 'mean'] = stateCumulativeMean
+
+    # Calculate current user's mean time spent in previous state
+    meanTime = round(stateCumulativeMean/stateVisits, 2)
+
+    # Print information to terminal
+    currentStateInfo = str(timeSpent) + "s in s" + str(previousProgramState) + "."
+    meanStateInfo = "Mean t in s" + str(previousProgramState) + " for curr user: " + str(meanTime) + "s."
+    print('%-20s%-40s' % (currentStateInfo, meanStateInfo))
+
+    # Reset global variables for next use
+    previousProgramState = programState
+    previousTicks = programTicker
+
 # exit_handler is called on exit of program, saves user data (percentSuccess, totalPercentage)
 def exit_handler():
     pickle.dump(database, open('userData/database.p','wb'))
@@ -629,6 +685,9 @@ while True:
     pygameWindow.Prepare()
     frame = controller.frame()
     k = 0
+
+    if programState != previousProgramState and programState != 3 and programState != 4:
+        LogPerformanceData()
 
     if programState == 0:
         HandleState0(frame)

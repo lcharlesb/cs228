@@ -38,6 +38,14 @@ yMax = 100.0
 database = pickle.load(open('userData/database.p','rb'))
 # userName set to current user's name (raw_input).
 userName = ""
+# userEntry holds the current user's entry in the database
+userEntry = ""
+# gold is used to store the users best score
+gold = -1
+# silver is used to store the users second best score
+silver = -1
+# bronze is used to store the users third best score
+bronze = -1
 # k is used for handling the user's hand location.
 k = 0
 # clf is our classifier for our machine learning algorithm (knn).
@@ -58,7 +66,7 @@ countForCorrectSign = 0
 # displayNewDigit is used within HandleState2 to decide whether or not to display a new digit to the user.
 displayNewDigit = True
 # digitToSign is set randomly to a digit for the user to sign.
-digitToSign = -1
+digitToSign = 0
 # displayInstructions is a boolean of whether or not to display the instructional image in DrawNumber
 displayInstructions = True
 #numCounter is used to track when to display that the user has failed the current digit (if it is greater than timeAllowedPerNumber).
@@ -91,7 +99,7 @@ startTickForCountDown = pygame.time.get_ticks()
 previousSeconds = 0
 
 # countForClockDuringGame is an integer value used to hold the countdown value during the game.
-countForClockDuringGame = 20
+countForClockDuringGame = 60
 # duringGameCountDownFirstIteration tracks whether it is the first iteration through programState 6.
 duringGameCountDownFirstIteration = True
 
@@ -99,6 +107,8 @@ duringGameCountDownFirstIteration = True
 arithmaticStage = False
 # correctAnswerForArithmatic stores the current value that the user should sign to answer the arithmatic shown.
 correctAnswerForArithmatic = 0
+# previousCorrectAnswerForArithmatic stores the previous value that the user had to sign to answer the arithmatic shown.
+previousCorrectAnswerForArithmatic = 0
 # additionOrSubtraction tracks which operator to use for the arithmatic stage (0 = addition, 1 = subtraction).
 additionOrSubtraction = 0
 # firstNumForArithmatic stores the first value of the equation.
@@ -107,6 +117,9 @@ firstNumForArithmatic = 0
 secondNumForArithmatic = 0
 # score holds the score of the current game
 score = 0
+
+# countForScoreboard is an integer value used to hold the count for displaying the scoreboard.
+countForScoreboard = 0
 
 
 ################### FUNCTIONS ####################
@@ -251,7 +264,7 @@ def Handle_Hand_Position(frame):
             pygameWindow.Draw_Instruction_Success()
             countForHandPos += 1
 
-# HandOverDevice determines whether a hand is over the device (true, false)
+# HandOverDevice determines whether a hand is over the device (True, False)
 def HandOverDevice(frame):
     if(len(frame.hands) > 0):
         return True
@@ -340,10 +353,10 @@ def HandleState2(frame):
     testData = CenterData(testData)
     predictedClass = clf.Predict(testData)
 
-    if(predictedClass == 0):
+    if(predictedClass == 0 and HandOverDevice(frame)):
         toggleHandColor = True
         countForTutorial += 1
-    elif(predictedClass == 1):
+    elif(predictedClass == 1 and HandOverDevice(frame)):
         toggleHandColor = True
         countForGame += 1
     else:
@@ -401,6 +414,8 @@ def HandleState5(frame):
                 return
             elif(iterationsThroughAllDigits == 3):
                 displayNewDigit = True
+                iterationsThroughAllDigits = False
+                digitToSign = -1
                 programState = 2
                 Handle_Frame(frame)
                 return
@@ -448,13 +463,13 @@ def HandleState6(frame):
         beforeGameCountDownFirstIteration = False
 
     if(countForClockBeforeGame >= 1):
-        pygameWindow.Display_CountDown(countForClockBeforeGame, 18)
+        pygameWindow.Display_CountDown(countForClockBeforeGame)
         seconds = int((pygame.time.get_ticks() - startTickForCountDown) / 1000)
         if(seconds != previousSeconds):
             previousSeconds = seconds
             countForClockBeforeGame -= 1
     elif(countForClockBeforeGame == 0):
-        pygameWindow.Display_CountDown("Go!", 48)
+        pygameWindow.Display_CountDown("Go!")
         seconds = int((pygame.time.get_ticks() - startTickForCountDown) / 1000)
         if(seconds != previousSeconds):
             countForClockBeforeGame -= 1
@@ -467,7 +482,7 @@ def HandleState6(frame):
 
 # HandleState7 is the actual game
 def HandleState7(frame):
-    global countForClockDuringGame, duringGameCountDownFirstIteration, startTickForCountDown, previousSeconds, displayNewDigit, correctAnswerForArithmatic, additionOrSubtraction, firstNumForArithmatic, secondNumForArithmatic, numCounter, countForCorrectSign, testData, clf, toggleHandColor, programState, timeAllowedPerNumber, arithmaticStage, score
+    global countForClockDuringGame, duringGameCountDownFirstIteration, startTickForCountDown, previousSeconds, displayNewDigit, correctAnswerForArithmatic, previousCorrectAnswerForArithmatic, additionOrSubtraction, firstNumForArithmatic, secondNumForArithmatic, numCounter, countForCorrectSign, testData, clf, toggleHandColor, programState, timeAllowedPerNumber, arithmaticStage, score
 
     # Timer part
     if(duringGameCountDownFirstIteration == True):
@@ -481,31 +496,35 @@ def HandleState7(frame):
             previousSeconds = seconds
             countForClockDuringGame -= 1
     else:
-        programState = 2
+        programState = 8
         previousSeconds = 0
         numCounter = 0
         countForClockDuringGame = 60
         duringGameCountDownFirstIteration = True
+        toggleHandColor = False
+        LogScore()
         return
 
     # Arithmatic part
     if(displayNewDigit == True):
-        additionOrSubtraction = randint(0,1)
+        while(previousCorrectAnswerForArithmatic == correctAnswerForArithmatic):
+            additionOrSubtraction = randint(0,1)
 
-        firstNumForArithmatic = 0
-        secondNumForArithmatic = 0
-        correctAnswerForArithmatic = 0
+            firstNumForArithmatic = 0
+            secondNumForArithmatic = 0
+            correctAnswerForArithmatic = 0
 
-        if (additionOrSubtraction == 0):
-            firstNumForArithmatic = randint(0,4)
-            secondNumForArithmatic = randint(0,5)
-            correctAnswerForArithmatic = firstNumForArithmatic + secondNumForArithmatic
+            if (additionOrSubtraction == 0):
+                firstNumForArithmatic = randint(0,4)
+                secondNumForArithmatic = randint(0,5)
+                correctAnswerForArithmatic = firstNumForArithmatic + secondNumForArithmatic
 
-        elif (additionOrSubtraction == 1):
-            firstNumForArithmatic = randint(4,9)
-            secondNumForArithmatic = randint(0,4)
-            correctAnswerForArithmatic = firstNumForArithmatic - secondNumForArithmatic
+            elif (additionOrSubtraction == 1):
+                firstNumForArithmatic = randint(4,9)
+                secondNumForArithmatic = randint(0,4)
+                correctAnswerForArithmatic = firstNumForArithmatic - secondNumForArithmatic
 
+        previousCorrectAnswerForArithmatic = correctAnswerForArithmatic
         countForCorrectSign = 0
         displayNewDigit = False
         numCounter = 0
@@ -523,12 +542,12 @@ def HandleState7(frame):
         countForCorrectSign += 1
     else:
         toggleHandColor = False
-        countForCorrectSign = 0
 
     # Display success if sign is correct for a count of 10.
     if(countForCorrectSign >= 10):
         toggleHandColor = False
         displayNewDigit = True
+        countForCorrectSign = 0
         score += 100
 
     # Display failure if sign is incorrect for the amount of time allowed per number.
@@ -538,7 +557,72 @@ def HandleState7(frame):
 
     numCounter += 1
 
+# HandleState8 displays the scoreboard
+def HandleState8(frame):
+    global gold, silver, bronze, programState, countForScoreboard, score
+
+    Handle_Frame(frame)
+    pygameWindow.Display_Game_End(gold, silver, bronze, score)
+
+    if(countForScoreboard >= 140):
+        programState = 2
+        score = 0
+        countForScoreboard = 0
+
+    countForScoreboard += 1
+
+# HandleDatabase is called to start the program
+def HandleDatabase():
+    global database, userName, userEntry, gold, silver, bronze
+
+    userName = raw_input('Please enter your name: ')
+
+    if userName in database:
+        print('Welcome back, ' + userName + '.')
+        userEntry = database[userName]
+        numLogins = userEntry['logins']
+        numLogins += 1
+        userEntry['logins'] = numLogins
+
+        gold = userEntry['gold']
+        silver = userEntry['silver']
+        bronze = userEntry['bronze']
+
+    else:
+        print('Welcome, ' + userName + '.')
+        database[userName] = {'logins':1}
+        userEntry = database[userName]
+        userEntry['gold'] = -1
+        userEntry['silver'] = -1
+        userEntry['bronze'] = -1
+
+# LogScore logs the user's most recent game score (if it is gold, silver or bronze).
+def LogScore():
+    global score, userEntry, gold, silver, bronze
+
+    if score > gold:
+        bronze = silver
+        silver = gold
+        gold = score
+    elif score > silver:
+        bronze = silver
+        silver = score
+    elif score > bronze:
+        bronze = score
+
+    userEntry['gold'] = gold
+    userEntry['silver'] = silver
+    userEntry['bronze'] = bronze
+
+# exit_handler is called on exit of program, saves user data (percentSuccess, totalPercentage)
+def exit_handler():
+    pickle.dump(database, open('userData/database.p','wb'))
+
+atexit.register(exit_handler)
+
 #################### LOCAL CODE ####################
+
+HandleDatabase()
 
 while True:
 
@@ -562,6 +646,8 @@ while True:
         HandleState6(frame)
     elif programState == 7:
         HandleState7(frame)
+    elif programState == 8:
+        HandleState8(frame)
 
     pygameWindow.Reveal()
 
