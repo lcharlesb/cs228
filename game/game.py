@@ -99,7 +99,7 @@ startTickForCountDown = pygame.time.get_ticks()
 previousSeconds = 0
 
 # countForClockDuringGame is an integer value used to hold the countdown value during the game.
-countForClockDuringGame = 30
+countForClockDuringGame = 60
 # duringGameCountDownFirstIteration tracks whether it is the first iteration through programState 6.
 duringGameCountDownFirstIteration = True
 
@@ -414,6 +414,8 @@ def HandleState5(frame):
                 return
             elif(iterationsThroughAllDigits == 3):
                 displayNewDigit = True
+                iterationsThroughAllDigits = False
+                digitToSign = -1
                 programState = 2
                 Handle_Frame(frame)
                 return
