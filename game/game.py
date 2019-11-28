@@ -128,7 +128,7 @@ programTicker = 0
 # previousTicks stores the number of ticks up to the previous program state switch.
 previousTicks = 0
 # previousProgramState stores the last programState the user was in.
-previousProgramState = 0
+previousProgramState = -1
 
 ################### FUNCTIONS ####################
 
@@ -638,40 +638,54 @@ def LogScore():
     userEntry['silver'] = silver
     userEntry['bronze'] = bronze
 
-# LogPerformanceData is called every time a user switches program states.
 def LogPerformanceData():
     global programState, previousProgramState, programTicker, previousTicks, userEntry
 
     # Get current ticks since program start
     programTicker = pygame.time.get_ticks()
 
-    # Get time spent in past programState
-    timeSpent = round((programTicker - previousTicks)/1000,2)
+    # Get time spent in programState
+    timeSpent = (programTicker - previousTicks) / 1000
 
-    # Get user data from database about number of visits to current previous state and increment
-    stateVisits = userEntry['s' + str(previousProgramState) + 'visits']
-    stateVisits += 1
-    userEntry['s' + str(previousProgramState) + 'visits'] = stateVisits
+    # Get user data from database about number of visits to current state
+    stateVisits = userEntry['s' + str(programState) + 'visits']
 
     # Get user data from database about mean time spent in previous state and add current time spent
-    stateCumulativeMean = userEntry['s' + str(previousProgramState) + 'mean']
+    stateCumulativeMean = userEntry['s' + str(programState) + 'mean']
     stateCumulativeMean += timeSpent
-    userEntry['s' + str(previousProgramState) + 'mean'] = stateCumulativeMean
 
-    # Calculate current user's mean time spent in previous state
-    meanTime = round(stateCumulativeMean/stateVisits, 2)
+    # Calculate mean time spent in current state
+    meanTime = stateCumulativeMean/(stateVisits + 1)
 
-    # Print information to terminal
-    currentStateInfo = str(timeSpent) + "s in s" + str(previousProgramState) + "."
-    meanStateInfo = "Mean t in s" + str(previousProgramState) + " for curr user: " + str(meanTime) + "s."
-    print('%-20s%-40s' % (currentStateInfo, meanStateInfo))
+    # If current state is not equal to previous state, set variables and log data
+    if programState != previousProgramState:
 
-    # Reset global variables for next use
-    previousProgramState = programState
-    previousTicks = programTicker
+        stateVisits += 1
+        userEntry['s' + str(programState) + 'visits'] = stateVisits
+        userEntry['s' + str(programState) + 'mean'] = stateCumulativeMean
+
+        userEntry['s' + str(programState) + '_' + str(stateVisits)] = timeSpent
+
+        # Print information to terminal
+        currentStateInfo = str('%.2f' % timeSpent) + "s in s" + str(previousProgramState) + "."
+        meanStateInfo = "Mean t in s" + str(previousProgramState) + " for curr user: " + str('%.2f' % meanTime) + "s."
+        print('%-20s%-40s' % (currentStateInfo, meanStateInfo))
+
+        # Set variables
+        previousTicks = programTicker
+        previousProgramState = programState
+
+    else:
+        # Print information to terminal
+        currentStateInfo = str('%.2f' % timeSpent) + "s in s" + str(programState) + "."
+        meanStateInfo = "Mean t in s" + str(programState) + " for curr user: " + str('%.2f' % meanTime) + "s."
+        print('%-20s%-40s' % (currentStateInfo, meanStateInfo))
 
 # exit_handler is called on exit of program, saves user data (percentSuccess, totalPercentage)
 def exit_handler():
+    global userEntry
+
+    print(userEntry)
     pickle.dump(database, open('userData/database.p','wb'))
 
 atexit.register(exit_handler)
@@ -686,7 +700,7 @@ while True:
     frame = controller.frame()
     k = 0
 
-    if programState != previousProgramState and programState != 3 and programState != 4:
+    if programState != 3 and programState != 4:
         LogPerformanceData()
 
     if programState == 0:
