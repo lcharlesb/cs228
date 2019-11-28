@@ -4,13 +4,13 @@ p1
 (dp2
 S'logins'
 p3
-I11
+I42
 sS'bronze'
 p4
-I800
+I1300
 sS'silver'
 p5
-I1300
+I1400
 sS'gold'
 p6
 I2400

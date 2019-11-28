@@ -189,16 +189,20 @@ class PYGAME_WINDOW:
         yMinus = image.get_rect().size[1]/2
         self.screen.blit(image, ((constants.pygameWindowWidth/4)*3 - xMinus, constants.pygameWindowDepth/2))
 
-    def Display_CountDown(self, numberToDisplay, xMinus):
+    def Display_CountDown(self, numberToDisplay):
         font = pygame.font.Font('freesansbold.ttf', 64)
         fontColor = (0,0,0)
         countDownFont = font.render(str(numberToDisplay), True, fontColor)
-        self.screen.blit(countDownFont, ((constants.pygameWindowWidth/4)*3 - xMinus, constants.pygameWindowDepth/2 - 36))
+        xMinus = countDownFont.get_rect().size[0]/2
+        yMinus = countDownFont.get_rect().size[1]/2
+        self.screen.blit(countDownFont, ((constants.pygameWindowWidth/4)*3 - xMinus, constants.pygameWindowDepth/2 - yMinus))
     def Display_Game_CountDown(self, numberToDisplay):
-        font = pygame.font.Font('freesansbold.ttf', 64)
+        font = pygame.font.Font('freesansbold.ttf', 58)
         fontColor = (0,0,0)
         countDownFont = font.render(str(numberToDisplay), True, fontColor)
-        self.screen.blit(countDownFont, ((constants.pygameWindowWidth/4)*3 - 34, constants.pygameWindowDepth/12))
+        xMinus = countDownFont.get_rect().size[0]/2
+        yMinus = countDownFont.get_rect().size[1]/2
+        self.screen.blit(countDownFont, ((constants.pygameWindowWidth/4)*3 - xMinus, constants.pygameWindowDepth/12 - yMinus))
 
     def Display_Score_During_Game(self, numberToDisplay):
         if(numberToDisplay == 0):
@@ -207,7 +211,9 @@ class PYGAME_WINDOW:
         font = pygame.font.Font('freesansbold.ttf', 38)
         fontColor = (0,0,0)
         countDownFont = font.render("Score: " + str(numberToDisplay), True, fontColor)
-        self.screen.blit(countDownFont, ((constants.pygameWindowWidth/4)*3 - 96, (constants.pygameWindowDepth/12) * 8))
+        xMinus = countDownFont.get_rect().size[0]/2
+        yMinus = countDownFont.get_rect().size[1]/2
+        self.screen.blit(countDownFont, ((constants.pygameWindowWidth/4)*3 - xMinus, (constants.pygameWindowDepth/12)*8))
 
     def DrawArithmatic(self, additionOrSubtraction, numOne, numTwo):
         font = pygame.font.Font('freesansbold.ttf', 80)
@@ -221,16 +227,56 @@ class PYGAME_WINDOW:
         text = str(numOne) + operator + str(numTwo)
         fontColor = (255, 0, 0)
         arithmaticFont = font.render(text, True, fontColor)
-        self.screen.blit(arithmaticFont, (((constants.pygameWindowWidth/4)*3 - 80), (constants.pygameWindowDepth/2) - 12))
+        xMinus = arithmaticFont.get_rect().size[0]/2
+        yMinus = arithmaticFont.get_rect().size[1]/2
+        self.screen.blit(arithmaticFont, (((constants.pygameWindowWidth/4)*3 - xMinus), (constants.pygameWindowDepth/2) - yMinus/2))
 
-    def Display_Game_End(self, score):
-        if(score == 0):
-            score = "000"
+    def Display_Game_End(self, gold, silver, bronze, score):
+        if gold == -1:
+            gold = 0
+        if silver == -1:
+            silver = 0
+        if bronze == -1:
+            bronze = 0
 
         font = pygame.font.Font('freesansbold.ttf', 38)
         fontColor = (0,0,0)
-        finalScoreFont = font.render("Your Score: " + str(score), True, fontColor)
-        self.screen.blit(finalScoreFont, (constants.pygameWindowWidth/2 - 152, constants.pygameWindowDepth/12))
 
-        instructionalFont = font.render("Press 'p' to play again", True, fontColor)
-        self.screen.blit(instructionalFont, (constants.pygameWindowWidth/2 - 200, constants.pygameWindowDepth/2 - 18))
+        image = pygame.image.load(r'./images/gold.jpg')
+        xMinus = image.get_rect().size[0]/2
+        yMinus = image.get_rect().size[1]/2
+        self.screen.blit(image, ((constants.pygameWindowWidth/8)*5 - xMinus, constants.pygameWindowDepth/4 - yMinus))
+
+        if score == gold:
+            fontColor = (0, 255, 0)
+        goldFont = font.render(str(gold), True, fontColor)
+        xMinus = goldFont.get_rect().size[0]/2
+        yMinus = goldFont.get_rect().size[1]/2
+        self.screen.blit(goldFont, ((constants.pygameWindowWidth/8)*7 - xMinus, constants.pygameWindowDepth/4 - yMinus))
+        fontColor = (0,0,0)
+
+        image = pygame.image.load(r'./images/silver.jpg')
+        xMinus = image.get_rect().size[0]/2
+        yMinus = image.get_rect().size[1]/2
+        self.screen.blit(image, ((constants.pygameWindowWidth/8)*5 - xMinus, (constants.pygameWindowDepth/4)*2 - yMinus))
+
+        if score == silver:
+            fontColor = (0, 255, 0)
+        silverFont = font.render(str(silver), True, fontColor)
+        xMinus = silverFont.get_rect().size[0]/2
+        yMinus = silverFont.get_rect().size[1]/2
+        self.screen.blit(silverFont, ((constants.pygameWindowWidth/8)*7 - xMinus, (constants.pygameWindowDepth/4)*2 - yMinus))
+        fontColor = (0,0,0)
+
+        image = pygame.image.load(r'./images/bronze.jpg')
+        xMinus = image.get_rect().size[0]/2
+        yMinus = image.get_rect().size[1]/2
+        self.screen.blit(image, ((constants.pygameWindowWidth/8)*5 - xMinus, (constants.pygameWindowDepth/4)*3 - yMinus))
+
+        if score == bronze:
+            fontColor = (0, 255, 0)
+        bronzeFont = font.render(str(bronze), True, fontColor)
+        xMinus = bronzeFont.get_rect().size[0]/2
+        yMinus = bronzeFont.get_rect().size[1]/2
+        self.screen.blit(bronzeFont, ((constants.pygameWindowWidth/8)*7 - xMinus, (constants.pygameWindowDepth/4)*3 - yMinus))
+        fontColor = (0,0,0)
