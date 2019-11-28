@@ -38,6 +38,14 @@ yMax = 100.0
 database = pickle.load(open('userData/database.p','rb'))
 # userName set to current user's name (raw_input).
 userName = ""
+# userEntry holds the current user's entry in the database
+userEntry = ""
+# gold is used to store the users best score
+gold = -1
+# silver is used to store the users second best score
+silver = -1
+# bronze is used to store the users third best score
+bronze = -1
 # k is used for handling the user's hand location.
 k = 0
 # clf is our classifier for our machine learning algorithm (knn).
@@ -58,7 +66,7 @@ countForCorrectSign = 0
 # displayNewDigit is used within HandleState2 to decide whether or not to display a new digit to the user.
 displayNewDigit = True
 # digitToSign is set randomly to a digit for the user to sign.
-digitToSign = -1
+digitToSign = 0
 # displayInstructions is a boolean of whether or not to display the instructional image in DrawNumber
 displayInstructions = True
 #numCounter is used to track when to display that the user has failed the current digit (if it is greater than timeAllowedPerNumber).
@@ -91,7 +99,7 @@ startTickForCountDown = pygame.time.get_ticks()
 previousSeconds = 0
 
 # countForClockDuringGame is an integer value used to hold the countdown value during the game.
-countForClockDuringGame = 60
+countForClockDuringGame = 10
 # duringGameCountDownFirstIteration tracks whether it is the first iteration through programState 6.
 duringGameCountDownFirstIteration = True
 
@@ -251,7 +259,7 @@ def Handle_Hand_Position(frame):
             pygameWindow.Draw_Instruction_Success()
             countForHandPos += 1
 
-# HandOverDevice determines whether a hand is over the device (true, false)
+# HandOverDevice determines whether a hand is over the device (True, False)
 def HandOverDevice(frame):
     if(len(frame.hands) > 0):
         return True
@@ -340,10 +348,10 @@ def HandleState2(frame):
     testData = CenterData(testData)
     predictedClass = clf.Predict(testData)
 
-    if(predictedClass == 0):
+    if(predictedClass == 0 and HandOverDevice()):
         toggleHandColor = True
         countForTutorial += 1
-    elif(predictedClass == 1):
+    elif(predictedClass == 1 and HandOverDevice()):
         toggleHandColor = True
         countForGame += 1
     else:
@@ -486,6 +494,8 @@ def HandleState7(frame):
         numCounter = 0
         countForClockDuringGame = 60
         duringGameCountDownFirstIteration = True
+        LogScore()
+        score = 0
         return
 
     # Arithmatic part
@@ -538,7 +548,58 @@ def HandleState7(frame):
 
     numCounter += 1
 
+# HandleDatabase is called to start the program
+def HandleDatabase():
+    global database, userName, userEntry, gold, silver, bronze
+
+    userName = raw_input('Please enter your name: ')
+
+    if userName in database:
+        print('Welcome back, ' + userName + '.')
+        userEntry = database[userName]
+        numLogins = userEntry['logins']
+        numLogins += 1
+        userEntry['logins'] = numLogins
+
+        gold = userEntry['gold']
+        silver = userEntry['silver']
+        bronze = userEntry['bronze']
+
+    else:
+        print('Welcome, ' + userName + '.')
+        database[userName] = {'logins':1}
+        userEntry = database[userName]
+        userEntry['gold'] = -1
+        userEntry['silver'] = -1
+        userEntry['bronze'] = -1
+
+# LogScore logs the user's most recent game score (if it is gold, silver or bronze).
+def LogScore():
+    global score, userEntry, gold, silver, bronze
+
+    if score > gold:
+        bronze = silver
+        silver = gold
+        gold = score
+    elif score > silver:
+        bronze = silver
+        silver = score
+    elif score > bronze:
+        bronze = score
+
+    userEntry['gold'] = gold
+    userEntry['silver'] = silver
+    userEntry['bronze'] = bronze
+
+# exit_handler is called on exit of program, saves user data (percentSuccess, totalPercentage)
+def exit_handler():
+    pickle.dump(database, open('userData/database.p','wb'))
+
+atexit.register(exit_handler)
+
 #################### LOCAL CODE ####################
+
+HandleDatabase()
 
 while True:
 
