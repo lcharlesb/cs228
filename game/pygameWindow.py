@@ -78,11 +78,11 @@ class PYGAME_WINDOW:
         xMinus = image.get_rect().size[0]/2
         yMinus = image.get_rect().size[1]/2
         self.screen.blit(image, ((constants.pygameWindowWidth/8)*5 - xMinus, (constants.pygameWindowDepth/3)*2 - yMinus))
-        image = pygame.image.load(r'./images/menu0.png')
+        image = pygame.image.load(r'./images/menu1.png')
         xMinus = image.get_rect().size[0]/2
         yMinus = image.get_rect().size[1]/2
         self.screen.blit(image, ((constants.pygameWindowWidth/8)*7 - xMinus, constants.pygameWindowDepth/3 - yMinus))
-        image = pygame.image.load(r'./images/menu1.png')
+        image = pygame.image.load(r'./images/menu6.png')
         xMinus = image.get_rect().size[0]/2
         yMinus = image.get_rect().size[1]/2
         self.screen.blit(image, ((constants.pygameWindowWidth/8)*7- xMinus, (constants.pygameWindowDepth/3)*2 - yMinus))

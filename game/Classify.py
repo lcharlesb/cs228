@@ -35,11 +35,11 @@ file = open("./userData/test3.p", "rb")
 test3 = pickle.load(file);
 file.close()
 
-file = open("./userData/train4.p", "rb")
+file = open("./userData/Ward_train4.p", "rb")
 train4 = pickle.load(file);
 file.close()
 
-file = open("./userData/test4.p", "rb")
+file = open("./userData/Ward_test4.p", "rb")
 test4 = pickle.load(file);
 file.close()
 

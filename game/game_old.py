@@ -412,9 +412,6 @@ def HandleState4(frame):
 def HandleState5(frame):
     global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor, iterationsThroughAllDigits, displayInstructions
 
-    print("displayNewDigit: " + str(displayNewDigit))
-    print("digitToSign (pre): " + str(digitToSign))
-
     if(displayNewDigit == True):
         if(digitToSign == 9):
             digitToSign = 0
@@ -437,8 +434,6 @@ def HandleState5(frame):
         displayNewDigit = False
         countForCorrectSign = 0
         numCounter = 0
-
-    print("digitToSign (post): " + str(digitToSign))
 
     DrawNumber(digitToSign)
     Handle_Frame(frame)
