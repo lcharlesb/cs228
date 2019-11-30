@@ -11,6 +11,7 @@ import pygame.image
 import random
 import sys
 import time
+import xlsxwriter
 
 sys.path.insert(0, '../..')
 
@@ -411,19 +412,23 @@ def HandleState4(frame):
 def HandleState5(frame):
     global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor, iterationsThroughAllDigits, displayInstructions
 
+    print("displayNewDigit: " + str(displayNewDigit))
+    print("digitToSign (pre): " + str(digitToSign))
+
     if(displayNewDigit == True):
         if(digitToSign == 9):
             digitToSign = 0
             iterationsThroughAllDigits += 1
-            if(iterationsThroughAllDigits == 2):
+            if(iterationsThroughAllDigits == 1):
                 displayInstructions = False
                 Handle_Frame(frame)
                 digitToSign = -1
                 return
-            elif(iterationsThroughAllDigits == 3):
+            elif(iterationsThroughAllDigits == 2):
                 displayNewDigit = True
-                iterationsThroughAllDigits = False
-                digitToSign = -1
+                displayInstructions = True
+                iterationsThroughAllDigits = 0
+                digitToSign = 0
                 programState = 2
                 Handle_Frame(frame)
                 return
@@ -432,6 +437,8 @@ def HandleState5(frame):
         displayNewDigit = False
         countForCorrectSign = 0
         numCounter = 0
+
+    print("digitToSign (post): " + str(digitToSign))
 
     DrawNumber(digitToSign)
     Handle_Frame(frame)
@@ -550,6 +557,7 @@ def HandleState7(frame):
         countForCorrectSign += 1
     else:
         toggleHandColor = False
+        countForCorrectSign = 0
 
     # Display success if sign is correct for a count of 10.
     if(countForCorrectSign >= 10):
@@ -647,24 +655,26 @@ def LogPerformanceData():
     # Get time spent in programState
     timeSpent = (programTicker - previousTicks) / 1000
 
-    # Get user data from database about number of visits to current state
-    stateVisits = userEntry['s' + str(programState) + 'visits']
-
-    # Get user data from database about mean time spent in previous state and add current time spent
-    stateCumulativeMean = userEntry['s' + str(programState) + 'mean']
-    stateCumulativeMean += timeSpent
-
-    # Calculate mean time spent in current state
-    meanTime = stateCumulativeMean/(stateVisits + 1)
-
     # If current state is not equal to previous state, set variables and log data
-    if programState != previousProgramState:
+    if programState != previousProgramState and previousProgramState != -1:
 
+        # Get user data from database about number of visits to current state
+        stateVisits = userEntry['s' + str(previousProgramState) + 'visits']
+
+        # Get user data from database about mean time spent in previous state and add current time spent
+        stateCumulativeMean = userEntry['s' + str(previousProgramState) + 'mean']
+        stateCumulativeMean += timeSpent
+
+        # Calculate mean time spent in current state
+        meanTime = stateCumulativeMean/(stateVisits + 1)
+
+        # Increment stateVisits and update database with stateVisits and stateCumulativeMean
         stateVisits += 1
-        userEntry['s' + str(programState) + 'visits'] = stateVisits
-        userEntry['s' + str(programState) + 'mean'] = stateCumulativeMean
+        userEntry['s' + str(previousProgramState) + 'visits'] = stateVisits
+        userEntry['s' + str(previousProgramState) + 'mean'] = stateCumulativeMean
 
-        userEntry['s' + str(programState) + '_' + str(stateVisits)] = timeSpent
+        # Enter time spent in new entry (state_visit#)
+        userEntry['s' + str(previousProgramState) + '_' + str(stateVisits)] = timeSpent
 
         # Print information to terminal
         currentStateInfo = str('%.2f' % timeSpent) + "s in s" + str(previousProgramState) + "."
@@ -675,17 +685,80 @@ def LogPerformanceData():
         previousTicks = programTicker
         previousProgramState = programState
 
+    elif previousProgramState == -1:
+
+        # Set variables
+        previousTicks = programTicker
+        previousProgramState = programState
+
     else:
+
+        # Get user data from database about number of visits to current state
+        stateVisits = userEntry['s' + str(programState) + 'visits']
+
+        # Get user data from database about mean time spent in previous state and add current time spent
+        stateCumulativeMean = userEntry['s' + str(programState) + 'mean']
+        stateCumulativeMean += timeSpent
+
+        # Calculate mean time spent in current state
+        meanTime = stateCumulativeMean/(stateVisits + 1)
+
         # Print information to terminal
         currentStateInfo = str('%.2f' % timeSpent) + "s in s" + str(programState) + "."
         meanStateInfo = "Mean t in s" + str(programState) + " for curr user: " + str('%.2f' % meanTime) + "s."
         print('%-20s%-40s' % (currentStateInfo, meanStateInfo))
+
+# exportToExcel is used to write collected performance data to an excel file.
+def exportToExcel():
+    global userEntry
+
+    logins = userEntry['logins']
+    workbookName = 'performanceData/' + str(userName) + str(logins) + '.xlsx'
+
+    workbook = xlsxwriter.Workbook(workbookName)
+    bold = workbook.add_format({'bold': True})
+
+    for stateNum in range(0, 9):
+        # Do not write data for states 3 and 4 (no data collected)
+        if(stateNum != 3 and stateNum != 4):
+            # Create necessary variables
+            stateTitle = 's' + str(stateNum)
+            numVisits = userEntry[stateTitle + 'visits']
+
+            # Create worksheet and headers
+            worksheet = workbook.add_worksheet(stateTitle)
+            worksheet.write('A1', 'Visit #', bold)
+            worksheet.write('B1', 'Time Spent', bold)
+
+            # For every visit to the current state
+            for visitNum in range(1, numVisits + 1):
+                # Create necessary variables
+                dbEntry = stateTitle + '_' + str(visitNum)
+                timeSpent = userEntry[dbEntry]
+
+                # Write to the file
+                worksheet.write(visitNum, 0, dbEntry)
+                worksheet.write(visitNum, 1, timeSpent)
+
+            # Handle mean if numVisits != 0
+            if(numVisits != 0):
+                # Calculate mean
+                cumulativeMean = userEntry[stateTitle + 'mean']
+                mean = cumulativeMean / numVisits
+
+                # Write mean to file
+                worksheet.write('D2', 'Mean Time Spent', bold)
+                worksheet.write('D3', mean)
+
+    workbook.close()
 
 # exit_handler is called on exit of program, saves user data (percentSuccess, totalPercentage)
 def exit_handler():
     global userEntry
 
     print(userEntry)
+
+    exportToExcel()
     pickle.dump(database, open('userData/database.p','wb'))
 
 atexit.register(exit_handler)
