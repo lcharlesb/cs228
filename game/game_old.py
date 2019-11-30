@@ -67,9 +67,11 @@ countForCorrectSign = 0
 # displayNewDigit is used within HandleState2 to decide whether or not to display a new digit to the user.
 displayNewDigit = True
 # digitToSign is set randomly to a digit for the user to sign.
-digitToSign = 0
-# displayInstructions is a boolean of whether or not to display the instructional image in DrawNumber
+digitToSign = -1
+# displayInstructions is a boolean of whether or not to display the instructional image in DrawNumber.
 displayInstructions = True
+# tempDisplayInstructions is used to show user the image when they are struggling to sign it while images are not being shown.
+tempDisplayInstructions = False
 #numCounter is used to track when to display that the user has failed the current digit (if it is greater than timeAllowedPerNumber).
 numCounter = 0
 # timeAllowedPerNumber holds the amount of iterations before a failure.
@@ -84,6 +86,12 @@ iterationsForSuccess = 20
 iterationsForFailure = 20
 # iterationsThroughAllDigits tracks how many times the user has gone through each digit. After 2 iterations, instructions stop showing. After one more iteration, PS 5.
 iterationsThroughAllDigits = 0
+# iterationsThroughTutorial tracks how many times the user has gone through the tutorial.
+iterationsThroughTutorial = 0
+# iterationsThroughTutorialWithImage is compared with iterationsThroughAllDigits to decide how many times the user has to go through the digits in the tutorial with images.
+iterationsThroughTutorialWithImage = 2
+# iterationsThroughTutorialWithoutImage is compared with iterationsThroughAllDigits to decide how many times the user has to go through the digits in the tutorial without images.
+iterationsThroughTutorialWithoutImage = 3
 
 # countForTutorial keeps a count of iterations before program goes to the tutorial
 countForTutorial = 0
@@ -110,6 +118,8 @@ arithmaticStage = False
 correctAnswerForArithmatic = 0
 # previousCorrectAnswerForArithmatic stores the previous value that the user had to sign to answer the arithmatic shown.
 previousCorrectAnswerForArithmatic = 0
+# arithmaticMaxNumber holds the maximum number that will be displayed to the user for the current game.
+arithmaticMaxNumber = 5
 # additionOrSubtraction tracks which operator to use for the arithmatic stage (0 = addition, 1 = subtraction).
 additionOrSubtraction = 0
 # firstNumForArithmatic stores the first value of the equation.
@@ -284,35 +294,35 @@ def DrawNumber(num):
 
     if(num == 0):
         pygameWindow.Draw0()
-        if(displayInstructions == True):
+        if(displayInstructions == True or tempDisplayInstructions == True):
             pygameWindow.Draw0Num()
     elif(num == 1):
         pygameWindow.Draw1()
-        if(displayInstructions == True):
+        if(displayInstructions == True or tempDisplayInstructions == True):
             pygameWindow.Draw1Num()
     elif(num == 2):
         pygameWindow.Draw2()
-        if(displayInstructions == True):
+        if(displayInstructions == True or tempDisplayInstructions == True):
             pygameWindow.Draw2Num()
     elif(num == 3):
         pygameWindow.Draw3()
-        if(displayInstructions == True):
+        if(displayInstructions == True or tempDisplayInstructions == True):
             pygameWindow.Draw3Num()
     elif(num == 4):
         pygameWindow.Draw4()
-        if(displayInstructions == True):
+        if(displayInstructions == True or tempDisplayInstructions == True):
             pygameWindow.Draw4Num()
     elif(num == 5):
         pygameWindow.Draw5()
-        if(displayInstructions == True):
+        if(displayInstructions == True or tempDisplayInstructions == True):
             pygameWindow.Draw5Num()
     elif(num == 6):
         pygameWindow.Draw6()
-        if(displayInstructions == True):
+        if(displayInstructions == True or tempDisplayInstructions == True):
             pygameWindow.Draw6Num()
     elif(num == 7):
         pygameWindow.Draw7()
-        if(displayInstructions == True):
+        if(displayInstructions == True or tempDisplayInstructions == True):
             pygameWindow.Draw7Num()
     elif(num == 8):
         pygameWindow.Draw8()
@@ -362,10 +372,10 @@ def HandleState2(frame):
     testData = CenterData(testData)
     predictedClass = clf.Predict(testData)
 
-    if(predictedClass == 0 and HandOverDevice(frame)):
+    if(predictedClass == 1 and HandOverDevice(frame)):
         toggleHandColor = True
         countForTutorial += 1
-    elif(predictedClass == 1 and HandOverDevice(frame)):
+    elif(predictedClass == 6 and HandOverDevice(frame)):
         toggleHandColor = True
         countForGame += 1
     else:
@@ -385,7 +395,7 @@ def HandleState2(frame):
 
 # HandleState3 draws success on screen for a count of 20
 def HandleState3(frame):
-    global programState, counterForSuccessDisplay, iterationsForSuccess
+    global programState, counterForSuccessDisplay, iterationsForSuccess, displayInstructions, tempDisplayInstructions
 
     pygameWindow.Draw_Instruction_Success()
     Handle_Frame(frame)
@@ -394,11 +404,14 @@ def HandleState3(frame):
         programState = 5
         counterForSuccessDisplay = 0
 
+        if(displayInstructions == False):
+            tempDisplayInstructions = False
+
     counterForSuccessDisplay += 1
 
 # HandleState4 draws failure on screen for a count of 20
 def HandleState4(frame):
-    global programState, counterForFailureDisplay, iterationsForFailure
+    global programState, counterForFailureDisplay, iterationsForFailure, displayInstructions, tempDisplayInstructions
 
     pygameWindow.Draw_Instruction_Failure()
     Handle_Frame(frame)
@@ -406,26 +419,40 @@ def HandleState4(frame):
     if(counterForFailureDisplay >= iterationsForFailure):
         programState = 5
         counterForFailureDisplay = 0
+
+        if(displayInstructions == False):
+            tempDisplayInstructions = True
+
     counterForFailureDisplay += 1
 
 # HandleState5 is the tutorial phase of the program
 def HandleState5(frame):
-    global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor, iterationsThroughAllDigits, displayInstructions
+    global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor, iterationsThroughAllDigits, iterationsThroughTutorial, iterationsThroughTutorialWithImage, iterationsThroughTutorialWithoutImage, displayInstructions
 
     if(displayNewDigit == True):
         if(digitToSign == 9):
             digitToSign = 0
             iterationsThroughAllDigits += 1
-            if(iterationsThroughAllDigits == 1):
+            if(iterationsThroughAllDigits == iterationsThroughTutorialWithImage):
                 displayInstructions = False
                 Handle_Frame(frame)
                 digitToSign = -1
                 return
-            elif(iterationsThroughAllDigits == 2):
+            elif(iterationsThroughAllDigits == iterationsThroughTutorialWithoutImage):
+                digitToSign = -1
                 displayNewDigit = True
-                displayInstructions = True
                 iterationsThroughAllDigits = 0
-                digitToSign = 0
+                iterationsThroughTutorial += 1
+
+                if(iterationsThroughTutorialWithImage > 0):
+                    iterationsThroughTutorialWithImage -= 1
+                    iterationsThroughTutorialWithoutImage -= 1
+
+                if(iterationsThroughTutorialWithImage == 0):
+                    displayInstructions = False
+                else:
+                    displayInstructions = True
+
                 programState = 2
                 Handle_Frame(frame)
                 return
@@ -492,7 +519,7 @@ def HandleState6(frame):
 
 # HandleState7 is the actual game
 def HandleState7(frame):
-    global countForClockDuringGame, duringGameCountDownFirstIteration, startTickForCountDown, previousSeconds, displayNewDigit, correctAnswerForArithmatic, previousCorrectAnswerForArithmatic, additionOrSubtraction, firstNumForArithmatic, secondNumForArithmatic, numCounter, countForCorrectSign, testData, clf, toggleHandColor, programState, timeAllowedPerNumber, arithmaticStage, score
+    global countForClockDuringGame, duringGameCountDownFirstIteration, startTickForCountDown, previousSeconds, displayNewDigit, correctAnswerForArithmatic, previousCorrectAnswerForArithmatic, additionOrSubtraction, firstNumForArithmatic, secondNumForArithmatic, numCounter, countForCorrectSign, testData, clf, toggleHandColor, programState, timeAllowedPerNumber, arithmaticStage, arithmaticMaxNumber, score
 
     # Timer part
     if(duringGameCountDownFirstIteration == True):
@@ -517,7 +544,7 @@ def HandleState7(frame):
 
     # Arithmatic part
     if(displayNewDigit == True):
-        while(previousCorrectAnswerForArithmatic == correctAnswerForArithmatic):
+        while(correctAnswerForArithmatic == previousCorrectAnswerForArithmatic or correctAnswerForArithmatic > arithmaticMaxNumber):
             additionOrSubtraction = randint(0,1)
 
             firstNumForArithmatic = 0
@@ -570,12 +597,16 @@ def HandleState7(frame):
 
 # HandleState8 displays the scoreboard
 def HandleState8(frame):
-    global gold, silver, bronze, programState, countForScoreboard, score
+    global gold, silver, bronze, programState, countForScoreboard, score, arithmaticMaxNumber
 
     Handle_Frame(frame)
     pygameWindow.Display_Game_End(gold, silver, bronze, score)
 
     if(countForScoreboard >= 140):
+
+        if(score >= 1600 and arithmaticMaxNumber < 9):
+            arithmaticMaxNumber += 1
+
         programState = 2
         score = 0
         countForScoreboard = 0
@@ -584,7 +615,7 @@ def HandleState8(frame):
 
 # HandleDatabase is called to start the program
 def HandleDatabase():
-    global database, userName, userEntry, gold, silver, bronze
+    global database, userName, userEntry, arithmaticMaxNumber, gold, silver, bronze
 
     userName = raw_input('Please enter your name: ')
 
@@ -595,6 +626,8 @@ def HandleDatabase():
         numLogins += 1
         userEntry['logins'] = numLogins
 
+        arithmaticMaxNumber = userEntry['arithmaticMaxNumber']
+
         gold = userEntry['gold']
         silver = userEntry['silver']
         bronze = userEntry['bronze']
@@ -603,6 +636,9 @@ def HandleDatabase():
         print('Welcome, ' + userName + '.')
         database[userName] = {'logins':1}
         userEntry = database[userName]
+
+        userEntry['arithmaticMaxNumber'] = arithmaticMaxNumber
+
         userEntry['gold'] = -1
         userEntry['silver'] = -1
         userEntry['bronze'] = -1
@@ -749,9 +785,9 @@ def exportToExcel():
 
 # exit_handler is called on exit of program, saves user data (percentSuccess, totalPercentage)
 def exit_handler():
-    global userEntry
+    global userEntry, arithmaticMaxNumber
 
-    print(userEntry)
+    userEntry['arithmaticMaxNumber'] = arithmaticMaxNumber
 
     exportToExcel()
     pickle.dump(database, open('userData/database.p','wb'))
