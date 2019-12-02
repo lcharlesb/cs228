@@ -92,6 +92,8 @@ iterationsThroughTutorial = 0
 iterationsThroughTutorialWithImage = 2
 # iterationsThroughTutorialWithoutImage is compared with iterationsThroughAllDigits to decide how many times the user has to go through the digits in the tutorial without images.
 iterationsThroughTutorialWithoutImage = 3
+# initialTutorialLoop is set to True when it is the first program loop through programState 5.
+initialTutorialLoop = True
 
 # countForTutorial keeps a count of iterations before program goes to the tutorial
 countForTutorial = 0
@@ -427,7 +429,11 @@ def HandleState4(frame):
 
 # HandleState5 is the tutorial phase of the program
 def HandleState5(frame):
-    global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor, iterationsThroughAllDigits, iterationsThroughTutorial, iterationsThroughTutorialWithImage, iterationsThroughTutorialWithoutImage, displayInstructions
+    global digitToSign, displayNewDigit, testData, clf, numCounter, timeAllowedPerNumber, countForCorrectSign, programState, toggleHandColor, iterationsThroughAllDigits, iterationsThroughTutorial, iterationsThroughTutorialWithImage, iterationsThroughTutorialWithoutImage, displayInstructions, initialTutorialLoop
+
+    if(initialTutorialLoop == True):
+        displayNewDigit = True
+        initialTutorialLoop = False
 
     if(displayNewDigit == True):
         if(digitToSign == 9):
@@ -443,6 +449,7 @@ def HandleState5(frame):
                 displayNewDigit = True
                 iterationsThroughAllDigits = 0
                 iterationsThroughTutorial += 1
+                initialTutorialLoop = True
 
                 if(iterationsThroughTutorialWithImage > 0):
                     iterationsThroughTutorialWithImage -= 1
@@ -678,7 +685,7 @@ def LogScore():
     userEntry['bronze'] = bronze
 
 def LogPerformanceData():
-    global programState, previousProgramState, programTicker, previousTicks, userEntry
+    global programState, previousProgramState, programTicker, previousTicks, userEntry, score
 
     # Get current ticks since program start
     programTicker = pygame.time.get_ticks()
@@ -706,6 +713,11 @@ def LogPerformanceData():
 
         # Enter time spent in new entry (state_visit#)
         userEntry['s' + str(previousProgramState) + '_' + str(stateVisits)] = timeSpent
+
+        # If previousProgramState is 7, log score.
+        if previousProgramState == 7:
+
+            userEntry['score' + str(stateVisits)] = score
 
         # Print information to terminal
         currentStateInfo = str('%.2f' % timeSpent) + "s in s" + str(previousProgramState) + "."
@@ -771,6 +783,13 @@ def exportToExcel():
                 worksheet.write(visitNum, 0, dbEntry)
                 worksheet.write(visitNum, 1, timeSpent)
 
+                # Write score if stateNum == 8
+                if(stateNum == 8):
+                    scoreNum = 'score' + str(visitNum)
+                    score = userEntry[scoreNum]
+                    worksheet.write(visitNum, 6, scoreNum)
+                    worksheet.write(visitNum, 7, score)
+
             # Handle mean if numVisits != 0
             if(numVisits != 0):
                 # Calculate mean
@@ -780,6 +799,9 @@ def exportToExcel():
                 # Write mean to file
                 worksheet.write('D2', 'Mean Time Spent', bold)
                 worksheet.write('D3', mean)
+
+
+
 
     workbook.close()
 
